@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pocket_photo/presentation/features/gallery/providers/gallery_provider.dart';
-import 'package:pocket_photo/theme/app_color_theme.dart';
-import 'package:pocket_photo/theme/app_text_theme.dart';
+import 'package:swipe_gallery/presentation/features/gallery/providers/gallery_provider.dart';
+import 'package:swipe_gallery/theme/app_color_theme.dart';
+import 'package:swipe_gallery/theme/app_text_theme.dart';
 
 class GalleryShell extends ConsumerWidget {
   const GalleryShell({required this.navigationShell, super.key});

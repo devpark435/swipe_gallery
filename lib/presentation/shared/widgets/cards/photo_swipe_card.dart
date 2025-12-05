@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:pocket_photo/data/models/gallery/photo_model.dart';
-import 'package:pocket_photo/theme/app_color_theme.dart';
-import 'package:pocket_photo/theme/app_text_theme.dart';
+import 'package:swipe_gallery/data/models/gallery/photo_model.dart';
+import 'package:swipe_gallery/theme/app_color_theme.dart';
+import 'package:swipe_gallery/theme/app_text_theme.dart';
 
 class PhotoSwipeCard extends StatelessWidget {
   const PhotoSwipeCard({super.key, required this.photo});

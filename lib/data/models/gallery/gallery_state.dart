@@ -1,4 +1,4 @@
-import 'package:pocket_photo/data/models/gallery/photo_model.dart';
+import 'package:swipe_gallery/data/models/gallery/photo_model.dart';
 
 class GalleryState {
   const GalleryState({this.active = const [], this.trash = const []});

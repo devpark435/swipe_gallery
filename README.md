@@ -1,4 +1,4 @@
-# pocket_photo
+# swipe_gallery
 
 A new Flutter project.
 

@@ -1,4 +1,4 @@
-package com.example.pocket_photo
+package com.example.swipe_gallery
 
 import io.flutter.embedding.android.FlutterActivity
 

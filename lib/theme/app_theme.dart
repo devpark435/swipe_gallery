@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pocket_photo/theme/app_color_theme.dart';
-import 'package:pocket_photo/theme/app_text_theme.dart';
+import 'package:swipe_gallery/theme/app_color_theme.dart';
+import 'package:swipe_gallery/theme/app_text_theme.dart';
 
 class AppTheme {
   AppTheme._();
@@ -51,4 +51,3 @@ class AppTheme {
     );
   }
 }
-

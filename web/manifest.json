@@ -1,6 +1,6 @@
 {
-    "name": "pocket_photo",
-    "short_name": "pocket_photo",
+    "name": "swipe_gallery",
+    "short_name": "swipe_gallery",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pocket_photo/data/models/gallery/gallery_exception.dart';
-import 'package:pocket_photo/data/models/gallery/photo_model.dart';
-import 'package:pocket_photo/presentation/features/gallery/providers/gallery_provider.dart';
-import 'package:pocket_photo/theme/app_color_theme.dart';
-import 'package:pocket_photo/theme/app_text_theme.dart';
+import 'package:swipe_gallery/data/models/gallery/gallery_exception.dart';
+import 'package:swipe_gallery/data/models/gallery/photo_model.dart';
+import 'package:swipe_gallery/presentation/features/gallery/providers/gallery_provider.dart';
+import 'package:swipe_gallery/theme/app_color_theme.dart';
+import 'package:swipe_gallery/theme/app_text_theme.dart';
 
 class TrashScreen extends ConsumerStatefulWidget {
   const TrashScreen({super.key});

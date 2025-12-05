@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "pocket_photo" "\0"
+            VALUE "FileDescription", "swipe_gallery" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "pocket_photo" "\0"
+            VALUE "InternalName", "swipe_gallery" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "pocket_photo.exe" "\0"
-            VALUE "ProductName", "pocket_photo" "\0"
+            VALUE "OriginalFilename", "swipe_gallery.exe" "\0"
+            VALUE "ProductName", "swipe_gallery" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

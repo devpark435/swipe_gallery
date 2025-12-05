@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:swipe_gallery/data/models/gallery/gallery_exception.dart';
+import 'package:swipe_gallery/data/models/gallery/photo_model.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:pocket_photo/data/models/gallery/gallery_exception.dart';
-import 'package:pocket_photo/data/models/gallery/photo_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gallery_service.g.dart';

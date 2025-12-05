@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pocket_photo/theme/app_color_theme.dart';
+import 'package:swipe_gallery/theme/app_color_theme.dart';
 
 /// 앱 전역 텍스트 스타일 정의
 class AppTextTheme {
@@ -40,4 +40,3 @@ class AppTextTheme {
     height: 1.3,
   );
 }
-

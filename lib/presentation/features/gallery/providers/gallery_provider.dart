@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
-import 'package:pocket_photo/data/models/gallery/gallery_exception.dart';
-import 'package:pocket_photo/data/models/gallery/gallery_state.dart';
-import 'package:pocket_photo/data/models/gallery/photo_model.dart';
-import 'package:pocket_photo/data/services/gallery/gallery_service.dart';
-import 'package:pocket_photo/data/services/gallery/trash_storage_service.dart';
+import 'package:swipe_gallery/data/models/gallery/gallery_exception.dart';
+import 'package:swipe_gallery/data/models/gallery/gallery_state.dart';
+import 'package:swipe_gallery/data/models/gallery/photo_model.dart';
+import 'package:swipe_gallery/data/services/gallery/gallery_service.dart';
+import 'package:swipe_gallery/data/services/gallery/trash_storage_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gallery_provider.g.dart';
