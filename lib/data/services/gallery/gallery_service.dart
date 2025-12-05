@@ -27,6 +27,7 @@ class GalleryService {
     }
 
     final assets = await paths.first.getAssetListPaged(page: 0, size: 100);
+    assets.sort((a, b) => a.createDateTime.compareTo(b.createDateTime));
     final photos = <PhotoModel>[];
 
     for (final asset in assets) {
