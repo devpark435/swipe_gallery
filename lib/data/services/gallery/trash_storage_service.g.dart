@@ -1,27 +1,30 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'gallery_provider.dart';
+part of 'trash_storage_service.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$galleryNotifierHash() => r'12299e81c08f72b8b3339c09f6946d749aec0062';
+String _$trashStorageServiceHash() =>
+    r'a79700781d20664e3937d43ad56b75cff388af1c';
 
-/// See also [GalleryNotifier].
-@ProviderFor(GalleryNotifier)
-final galleryNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<GalleryNotifier, GalleryState>.internal(
-      GalleryNotifier.new,
-      name: r'galleryNotifierProvider',
+/// See also [trashStorageService].
+@ProviderFor(trashStorageService)
+final trashStorageServiceProvider =
+    AutoDisposeProvider<TrashStorageService>.internal(
+      trashStorageService,
+      name: r'trashStorageServiceProvider',
       debugGetCreateSourceHash:
           const bool.fromEnvironment('dart.vm.product')
               ? null
-              : _$galleryNotifierHash,
+              : _$trashStorageServiceHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$GalleryNotifier = AutoDisposeAsyncNotifier<GalleryState>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TrashStorageServiceRef = AutoDisposeProviderRef<TrashStorageService>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
