@@ -6,6 +6,7 @@ import 'package:swipe_gallery/data/models/gallery/gallery_state.dart';
 import 'package:swipe_gallery/data/models/gallery/photo_model.dart';
 import 'package:swipe_gallery/data/services/gallery/gallery_service.dart';
 import 'package:swipe_gallery/data/services/gallery/trash_storage_service.dart';
+import 'package:swipe_gallery/presentation/features/permission/providers/permission_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gallery_provider.g.dart';
@@ -18,6 +19,12 @@ class GalleryNotifier extends _$GalleryNotifier {
 
   @override
   FutureOr<GalleryState> build() async {
+    final permissionStatus =
+        await ref.watch(galleryPermissionNotifierProvider.future);
+    if (!permissionStatus.isGranted) {
+      return const GalleryState();
+    }
+
     final service = ref.read(galleryServiceProvider);
     final photos = await service.fetchPhotos();
     return _buildStateFromPhotos(photos);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swipe_gallery/presentation/features/permission/widgets/permission_gate.dart';
 import 'package:swipe_gallery/router/app_router.dart';
 import 'package:swipe_gallery/theme/app_theme.dart';
 
@@ -19,6 +20,9 @@ class SwipeGalleryApp extends ConsumerWidget {
       title: 'Swipe Gallery',
       theme: AppTheme.theme,
       routerConfig: router,
+      builder: (context, child) {
+        return PermissionGate(child: child ?? const SizedBox.shrink());
+      },
       debugShowCheckedModeBanner: false,
     );
   }
