@@ -25,10 +25,12 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
         title: Text(
           '오늘의 갤러리',
           style: AppTextTheme.headlineMedium.copyWith(
             color: AppColorTheme.textPrimary,
+            fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
@@ -36,9 +38,10 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
             onPressed: () {
               ref.read(galleryNotifierProvider.notifier).refresh();
             },
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
             tooltip: '사진 새로고침',
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -103,64 +106,85 @@ class _GalleryContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 12),
-        Text(
-          '스와이프로 다음 사진을 확인하세요',
-          style: AppTextTheme.bodyMedium.copyWith(
-            color: AppColorTheme.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: '좌 ',
-                style: AppTextTheme.bodyLarge.copyWith(
-                  color: AppColorTheme.error,
-                ),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColorTheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
               ),
-              TextSpan(
-                text: '삭제 · ',
-                style: AppTextTheme.bodyMedium.copyWith(
-                  color: AppColorTheme.textSecondary,
-                ),
-              ),
-              TextSpan(
-                text: '우 ',
-                style: AppTextTheme.bodyLarge.copyWith(
+              child: Text(
+                '남은 사진 ${photos.length}장',
+                style: AppTextTheme.labelLarge.copyWith(
                   color: AppColorTheme.primary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              TextSpan(
-                text: '패스',
-                style: AppTextTheme.bodyMedium.copyWith(
-                  color: AppColorTheme.textSecondary,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        const SizedBox(height: 24),
-        Expanded(
-          child: Center(
-            child: SizedBox(
-              height: mediaSize.height * 0.6,
-              child: _SwipeDeck(
-                photos: photos,
-                onRemove: onRemove,
-                onPass: onPass,
-              ),
+        const Spacer(),
+        Center(
+          child: SizedBox(
+            height: mediaSize.height * 0.62,
+            child: _SwipeDeck(
+              photos: photos,
+              onRemove: onRemove,
+              onPass: onPass,
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const Spacer(),
+        _SwipeGuideText(),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
+class _SwipeGuideText extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildGuideItem(
+          icon: Icons.arrow_back_rounded,
+          color: AppColorTheme.error,
+          label: '삭제',
+        ),
+        Container(
+          height: 16,
+          width: 1,
+          color: AppColorTheme.border,
+          margin: const EdgeInsets.symmetric(horizontal: 24),
+        ),
+        _buildGuideItem(
+          icon: Icons.arrow_forward_rounded,
+          color: AppColorTheme.primary,
+          label: '넘기기',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGuideItem({
+    required IconData icon,
+    required Color color,
+    required String label,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: color),
+        const SizedBox(width: 8),
         Text(
-          '남은 사진 ${photos.length}장',
+          label,
           style: AppTextTheme.bodyMedium.copyWith(
             color: AppColorTheme.textSecondary,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 24),
       ],
     );
   }
@@ -179,19 +203,20 @@ class _SwipeDeck extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visiblePhotos = photos.take(3).toList();
+    // 덱에서 가장 위에 있는 1장만 가져옵니다.
+    final visiblePhotos = photos.take(1).toList();
 
     return Stack(
       alignment: Alignment.center,
       children: [
         for (var i = visiblePhotos.length - 1; i >= 0; i--)
           Positioned.fill(
-            top: i * 12,
-            bottom: i * 12,
+            top: i * 14,
+            bottom: i * 14,
             child: Transform.translate(
-              offset: Offset(0, i * 8),
+              offset: Offset(0, i * 12),
               child: Transform.scale(
-                scale: 1 - (i * 0.04),
+                scale: 1 - (i * 0.05),
                 child:
                     i == 0
                         ? _SwipeableCard(
@@ -200,7 +225,21 @@ class _SwipeDeck extends StatelessWidget {
                           onPass: onPass,
                         )
                         : IgnorePointer(
-                          child: PhotoSwipeCard(photo: visiblePhotos[i]),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(32),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColorTheme.textPrimary.withOpacity(
+                                    0.05,
+                                  ),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: PhotoSwipeCard(photo: visiblePhotos[i]),
+                          ),
                         ),
               ),
             ),
@@ -231,46 +270,64 @@ class _SwipeableCard extends StatelessWidget {
           onRemove(photo);
           _showToast(
             context,
-            message: '사진이 휴지통으로 이동했어요.',
-            background: AppColorTheme.error,
+            message: '사진이 휴지통으로 이동했어요',
+            icon: Icons.delete_outline_rounded,
           );
         } else if (direction == DismissDirection.startToEnd) {
           onPass(photo);
-          _showToast(
-            context,
-            message: '패스한 사진을 숨겼어요.',
-            background: AppColorTheme.primary,
-          );
         }
       },
       background: _SwipeActionBackground(
         alignment: Alignment.centerLeft,
-        color: AppColorTheme.primary.withOpacity(0.9),
-        icon: Icons.arrow_forward_rounded,
-        label: '패스',
+        color: AppColorTheme.primary,
+        icon: Icons.check_rounded,
+        label: '넘기기',
       ),
       secondaryBackground: _SwipeActionBackground(
         alignment: Alignment.centerRight,
-        color: AppColorTheme.error.withOpacity(0.9),
-        icon: Icons.delete_outline,
+        color: AppColorTheme.error,
+        icon: Icons.delete_outline_rounded,
         label: '삭제',
       ),
-      child: PhotoSwipeCard(photo: photo),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: AppColorTheme.textPrimary.withOpacity(0.08),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: PhotoSwipeCard(photo: photo),
+      ),
     );
   }
 
   void _showToast(
     BuildContext context, {
     required String message,
-    required Color background,
+    required IconData icon,
   }) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(message, style: AppTextTheme.labelLarge),
-          backgroundColor: background,
+          content: Row(
+            children: [
+              Icon(icon, color: AppColorTheme.surface, size: 20),
+              const SizedBox(width: 12),
+              Text(message, style: AppTextTheme.labelLarge),
+            ],
+          ),
+          backgroundColor: AppColorTheme.textPrimary.withOpacity(0.9),
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+          elevation: 0,
         ),
       );
   }
@@ -288,34 +345,55 @@ class _GalleryEmpty extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            color: AppColorTheme.textSecondary.withOpacity(0.5),
-            size: 72,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '갤러리에 표시할 사진이 없어요.',
-            style: AppTextTheme.headlineMedium.copyWith(
-              color: AppColorTheme.textSecondary,
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColorTheme.background,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColorTheme.border),
+            ),
+            child: Icon(
+              Icons.check_circle_outline_rounded,
+              color: AppColorTheme.primary,
+              size: 56,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 24),
           Text(
-            hasTrash
-                ? '휴지통에서 사진을 복원하면 다시 볼 수 있어요.'
-                : '사진 앱에 이미지를 추가하면 여기에서 확인할 수 있어요.',
-            style: AppTextTheme.bodyMedium.copyWith(
-              color: AppColorTheme.textSecondary.withOpacity(0.8),
+            '모든 사진을 확인했어요!',
+            style: AppTextTheme.headlineMedium.copyWith(
+              color: AppColorTheme.textPrimary,
+              fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
-          TextButton.icon(
-            onPressed: onOpenTrash,
-            icon: const Icon(Icons.delete_outline),
-            label: const Text('휴지통 열기'),
+          const SizedBox(height: 12),
+          Text(
+            hasTrash ? '휴지통에서 삭제한 사진을 정리해보세요.' : '새로운 사진이 추가되면\n여기서 알려드릴게요.',
+            style: AppTextTheme.bodyMedium.copyWith(
+              color: AppColorTheme.textSecondary,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 32),
+          if (hasTrash)
+            FilledButton.icon(
+              onPressed: onOpenTrash,
+              icon: const Icon(Icons.delete_outline_rounded, size: 20),
+              label: const Text('휴지통 정리하기'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                backgroundColor: AppColorTheme.textPrimary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -338,18 +416,32 @@ class _SwipeActionBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 32),
       alignment: alignment,
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: AppColorTheme.surface),
-          const SizedBox(width: 8),
-          Text(label, style: AppTextTheme.labelLarge),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: AppTextTheme.labelLarge.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -367,51 +459,68 @@ class _GalleryError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = isPermissionDenied ? '사진 접근 권한이 필요해요.' : '사진을 불러오지 못했어요.';
-    final description =
-        isPermissionDenied
-            ? '설정에서 사진 접근 권한을 허용하면 갤러리를 다시 볼 수 있어요.'
-            : '갤러리 정보를 불러오는 중 문제가 발생했어요. 다시 시도해주세요.';
-
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            isPermissionDenied ? Icons.lock_outline : Icons.cloud_off_outlined,
-            color: AppColorTheme.textSecondary.withOpacity(0.5),
-            size: 72,
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColorTheme.error.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isPermissionDenied
+                  ? Icons.lock_outline_rounded
+                  : Icons.cloud_off_rounded,
+              color: AppColorTheme.error,
+              size: 48,
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
-            title,
+            isPermissionDenied ? '사진 접근 권한이 필요해요' : '사진을 불러오지 못했어요',
             style: AppTextTheme.headlineMedium.copyWith(
-              color: AppColorTheme.textSecondary,
+              color: AppColorTheme.textPrimary,
+              fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            description,
+            isPermissionDenied
+                ? '설정에서 권한을 허용하면\n갤러리를 다시 볼 수 있어요.'
+                : '일시적인 오류일 수 있어요.\n잠시 후 다시 시도해주세요.',
             style: AppTextTheme.bodyMedium.copyWith(
-              color: AppColorTheme.textSecondary.withOpacity(0.8),
+              color: AppColorTheme.textSecondary,
+              height: 1.5,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           FilledButton.icon(
             onPressed: onRetry,
             label: const Text('다시 시도'),
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              backgroundColor: AppColorTheme.textPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
           ),
           if (isPermissionDenied) ...[
             const SizedBox(height: 12),
-            OutlinedButton.icon(
+            TextButton.icon(
               onPressed: () async {
                 await PhotoManager.openSetting();
               },
               icon: const Icon(Icons.settings_outlined),
-              label: const Text('설정에서 권한 허용하기'),
+              label: const Text('설정으로 이동'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColorTheme.textSecondary,
+              ),
             ),
           ],
         ],

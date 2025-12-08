@@ -33,6 +33,16 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
     });
   }
 
+  void _selectAll(List<PhotoModel> photos) {
+    setState(() {
+      if (_selectedIds.length == photos.length) {
+        _selectedIds.clear();
+      } else {
+        _selectedIds.addAll(photos.map((p) => p.id));
+      }
+    });
+  }
+
   void _clearSelection() {
     if (!_hasSelection) {
       return;
@@ -54,12 +64,19 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(
-            '선택한 사진 $restoredCount장을 복원했어요.',
-            style: AppTextTheme.labelLarge,
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white),
+              const SizedBox(width: 12),
+              Text('사진 $restoredCount장을 복원했어요', style: AppTextTheme.labelLarge),
+            ],
           ),
           backgroundColor: AppColorTheme.primary,
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
         ),
       );
   }
@@ -85,11 +102,15 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
         ..showSnackBar(
           SnackBar(
             content: Text(
-              '선택한 사진 $deleted장을 완전히 삭제했습니다.',
+              '사진 $deleted장을 완전히 삭제했어요',
               style: AppTextTheme.labelLarge,
             ),
             backgroundColor: AppColorTheme.error,
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
           ),
         );
     } on GalleryDeletionException catch (error) {
@@ -103,47 +124,10 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
             content: Text(error.message, style: AppTextTheme.labelLarge),
             backgroundColor: AppColorTheme.warning,
             behavior: SnackBarBehavior.floating,
-          ),
-        );
-    }
-  }
-
-  Future<void> _deleteAll(BuildContext context) async {
-    try {
-      final deleted =
-          await ref.read(galleryNotifierProvider.notifier).purgeAllTrash();
-      if (!mounted) {
-        return;
-      }
-
-      if (deleted == 0) {
-        return;
-      }
-
-      setState(() => _selectedIds.clear());
-      _messenger(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              '휴지통에서 사진 $deleted장을 삭제했습니다.',
-              style: AppTextTheme.labelLarge,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            backgroundColor: AppColorTheme.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-    } on GalleryDeletionException catch (error) {
-      if (!mounted) {
-        return;
-      }
-      _messenger(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(error.message, style: AppTextTheme.labelLarge),
-            backgroundColor: AppColorTheme.warning,
-            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
           ),
         );
     }
@@ -156,81 +140,102 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
         title: Text(
           '휴지통',
           style: AppTextTheme.headlineMedium.copyWith(
             color: AppColorTheme.textPrimary,
+            fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
-          if (trashCount > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: TextButton.icon(
-                onPressed: () => _deleteAll(context),
-                icon: const Icon(Icons.delete_forever_outlined),
-                label: const Text('모두 삭제하기'),
+          if (trashCount > 0) ...[
+            TextButton(
+              onPressed: () {
+                final trash = galleryState.valueOrNull?.trash ?? [];
+                _selectAll(trash);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: AppColorTheme.textSecondary,
+                textStyle: AppTextTheme.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              child: Text(
+                _selectedIds.length == trashCount ? '선택 해제' : '전체 선택',
               ),
             ),
+            const SizedBox(width: 12),
+          ],
         ],
       ),
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
-              child: galleryState.when(
-                data: (gallery) {
-                  final trash = gallery.trash;
-                  if (trash.isEmpty) {
-                    return const _TrashEmptyView();
-                  }
+            galleryState.when(
+              data: (gallery) {
+                final trash = gallery.trash;
+                if (trash.isEmpty) {
+                  return const _TrashEmptyView();
+                }
 
-                  return GridView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    physics: const BouncingScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 0.72,
-                        ),
-                    itemCount: trash.length,
-                    itemBuilder: (context, index) {
-                      final photo = trash[index];
-                      final selected = _selectedIds.contains(photo.id);
-                      return _TrashGridItem(
-                        photo: photo,
-                        selected: selected,
-                        onTap: () => _toggleSelection(photo),
-                      );
+                return GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                  physics: const BouncingScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.8,
+                  ),
+                  itemCount: trash.length,
+                  itemBuilder: (context, index) {
+                    final photo = trash[index];
+                    final selected = _selectedIds.contains(photo.id);
+                    return _TrashGridItem(
+                      photo: photo,
+                      selected: selected,
+                      onTap: () => _toggleSelection(photo),
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error:
+                  (error, stackTrace) => _TrashErrorView(
+                    onRetry: () {
+                      ref.read(galleryNotifierProvider.notifier).refresh();
                     },
+                  ),
+            ),
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: 16,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 1),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                    ),
+                    child: FadeTransition(opacity: animation, child: child),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error:
-                    (error, stackTrace) => _TrashErrorView(
-                      onRetry: () {
-                        ref.read(galleryNotifierProvider.notifier).refresh();
-                      },
-                    ),
+                child:
+                    _hasSelection
+                        ? _SelectionActionsBar(
+                          key: const ValueKey('selection-bar'),
+                          count: _selectedIds.length,
+                          onRestore: () => _restoreSelected(context),
+                          onDelete: () => _deleteSelected(context),
+                          onClear: _clearSelection,
+                        )
+                        : const SizedBox.shrink(),
               ),
-            ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child:
-                  _hasSelection
-                      ? _SelectionActionsBar(
-                        key: const ValueKey('selection-bar'),
-                        count: _selectedIds.length,
-                        onRestore: () => _restoreSelected(context),
-                        onDelete: () => _deleteSelected(context),
-                        onClear: _clearSelection,
-                      )
-                      : const SizedBox.shrink(),
             ),
           ],
         ),
@@ -254,67 +259,84 @@ class _TrashGridItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            _TrashImage(photo: photo),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      AppColorTheme.textPrimary.withOpacity(0.85),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? AppColorTheme.primary : Colors.transparent,
+            width: 2,
+          ),
+          boxShadow: [
+            if (selected)
+              BoxShadow(
+                color: AppColorTheme.primary.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              _TrashImage(photo: photo),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                color:
+                    selected
+                        ? Colors.black.withOpacity(0.4)
+                        : Colors.transparent,
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.7),
+                      ],
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        photo.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextTheme.bodyMedium.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        photo.description,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextTheme.labelLarge.copyWith(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 10,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      photo.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextTheme.bodyLarge.copyWith(
-                        color: AppColorTheme.surface,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      photo.description,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextTheme.bodyMedium.copyWith(
-                        color: AppColorTheme.surface.withOpacity(0.7),
-                      ),
-                    ),
-                  ],
-                ),
               ),
-            ),
-            Positioned(
-              top: 10,
-              right: 10,
-              child: _SelectionIndicator(selected: selected),
-            ),
-            AnimatedOpacity(
-              duration: const Duration(milliseconds: 150),
-              opacity: selected ? 1 : 0,
-              child: Container(color: AppColorTheme.primary.withOpacity(0.2)),
-            ),
-          ],
+              Positioned(
+                top: 8,
+                right: 8,
+                child: _SelectionIndicator(selected: selected),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -349,9 +371,9 @@ class _TrashImage extends StatelessWidget {
       color: AppColorTheme.background,
       alignment: Alignment.center,
       child: Icon(
-        Icons.image_not_supported_outlined,
-        color: AppColorTheme.textSecondary.withOpacity(0.5),
-        size: 34,
+        Icons.image_not_supported_rounded,
+        color: AppColorTheme.textSecondary.withOpacity(0.3),
+        size: 32,
       ),
     );
   }
@@ -364,28 +386,19 @@ class _SelectionIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 26,
-      height: 26,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: 24,
+      height: 24,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color:
-            selected
-                ? AppColorTheme.primary
-                : AppColorTheme.surface.withOpacity(0.85),
-        border: Border.all(
-          color: selected ? AppColorTheme.primary : AppColorTheme.border,
-          width: 1.5,
-        ),
+        color: selected ? AppColorTheme.primary : Colors.black.withOpacity(0.3),
+        border: Border.all(color: Colors.white, width: 1.5),
       ),
-      alignment: Alignment.center,
       child: Icon(
-        selected ? Icons.check : Icons.radio_button_unchecked,
+        Icons.check,
         size: 16,
-        color:
-            selected
-                ? AppColorTheme.surface
-                : AppColorTheme.textSecondary.withOpacity(0.8),
+        color: selected ? Colors.white : Colors.transparent,
       ),
     );
   }
@@ -407,66 +420,80 @@ class _SelectionActionsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      elevation: 8,
-      color: AppColorTheme.surface,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColorTheme.textPrimary,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Text(
-                    '선택된 사진 $count장',
-                    style: AppTextTheme.bodyLarge.copyWith(
-                      color: AppColorTheme.textPrimary,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: onClear,
-                    tooltip: '선택 해제',
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
+              Text(
+                '$count장 선택됨',
+                style: AppTextTheme.bodyLarge.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: onRestore,
-                      icon: const Icon(Icons.undo),
-                      label: const Text('선택 사진 복구'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColorTheme.primary,
-                        side: BorderSide(
-                          color: AppColorTheme.primary.withOpacity(0.6),
-                        ),
-                      ),
-                    ),
+              const Spacer(),
+              GestureDetector(
+                onTap: onClear,
+                child: Text(
+                  '선택 해제',
+                  style: AppTextTheme.bodyMedium.copyWith(
+                    color: Colors.white.withOpacity(0.7),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: onDelete,
-                      icon: const Icon(Icons.delete_forever),
-                      label: const Text('선택 사진 삭제'),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColorTheme.error,
-                        foregroundColor: AppColorTheme.surface,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: onRestore,
+                  icon: const Icon(Icons.refresh_rounded, size: 20),
+                  label: const Text('복원'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppColorTheme.textPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: onDelete,
+                  icon: const Icon(Icons.delete_forever_rounded, size: 20),
+                  label: const Text('삭제'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColorTheme.error,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -481,24 +508,35 @@ class _TrashEmptyView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            color: AppColorTheme.textSecondary.withOpacity(0.5),
-            size: 72,
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColorTheme.background,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColorTheme.border),
+            ),
+            child: Icon(
+              Icons.delete_outline_rounded,
+              color: AppColorTheme.textSecondary.withOpacity(0.5),
+              size: 56,
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
-            '휴지통이 비어 있어요.',
+            '휴지통이 비어 있어요',
             style: AppTextTheme.headlineMedium.copyWith(
-              color: AppColorTheme.textSecondary,
+              color: AppColorTheme.textPrimary,
+              fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            '삭제한 사진은 이곳에 임시 보관돼요.\n필요 없는 사진은 여기에서 영구 삭제할 수 있어요.',
+            '삭제한 사진은 이곳에 보관돼요.\n필요할 때 언제든 복원할 수 있어요.',
             style: AppTextTheme.bodyMedium.copyWith(
-              color: AppColorTheme.textSecondary.withOpacity(0.8),
+              color: AppColorTheme.textSecondary,
+              height: 1.5,
             ),
             textAlign: TextAlign.center,
           ),
@@ -520,31 +558,39 @@ class _TrashErrorView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.error_outline,
+            Icons.error_outline_rounded,
             color: AppColorTheme.textSecondary.withOpacity(0.5),
             size: 72,
           ),
           const SizedBox(height: 16),
           Text(
-            '휴지통을 불러오지 못했어요.',
+            '휴지통을 불러오지 못했어요',
             style: AppTextTheme.headlineMedium.copyWith(
-              color: AppColorTheme.textSecondary,
+              color: AppColorTheme.textPrimary,
+              fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            '네트워크 상태를 확인하고 다시 시도해주세요.',
+            '잠시 후 다시 시도해주세요',
             style: AppTextTheme.bodyMedium.copyWith(
-              color: AppColorTheme.textSecondary.withOpacity(0.8),
+              color: AppColorTheme.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: onRetry,
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
             label: const Text('다시 시도'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              backgroundColor: AppColorTheme.textPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
           ),
         ],
       ),

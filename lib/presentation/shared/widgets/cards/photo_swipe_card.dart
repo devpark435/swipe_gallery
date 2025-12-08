@@ -13,8 +13,11 @@ class PhotoSwipeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 0,
+      color: AppColorTheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -24,37 +27,47 @@ class PhotoSwipeCard extends StatelessWidget {
               right: 0,
               bottom: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 20,
-                ),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
                       AppColorTheme.transparent,
-                      AppColorTheme.textPrimary.withOpacity(0.85),
+                      Colors.black.withOpacity(0.1),
+                      Colors.black.withOpacity(0.4),
+                      Colors.black.withOpacity(0.8),
                     ],
+                    stops: const [0.0, 0.3, 0.6, 1.0],
                   ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const SizedBox(height: 32),
                     Text(
                       photo.title,
                       style: AppTextTheme.headlineMedium.copyWith(
-                        color: AppColorTheme.surface,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        height: 1.3,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       photo.description,
                       style: AppTextTheme.bodyMedium.copyWith(
-                        color: AppColorTheme.surface.withOpacity(0.82),
+                        color: Colors.white.withOpacity(0.8),
+                        height: 1.5,
                       ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -89,6 +102,7 @@ class PhotoSwipeCard extends StatelessWidget {
                     ? progress.cumulativeBytesLoaded /
                         progress.expectedTotalBytes!
                     : null,
+            color: AppColorTheme.surface,
           ),
         );
       },
@@ -100,10 +114,22 @@ class PhotoSwipeCard extends StatelessWidget {
     return Container(
       color: AppColorTheme.background,
       alignment: Alignment.center,
-      child: Icon(
-        Icons.broken_image_outlined,
-        color: AppColorTheme.textSecondary.withOpacity(0.6),
-        size: 48,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.broken_image_rounded,
+            color: AppColorTheme.textSecondary.withOpacity(0.4),
+            size: 48,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '이미지를 불러올 수 없어요',
+            style: AppTextTheme.bodyMedium.copyWith(
+              color: AppColorTheme.textSecondary.withOpacity(0.6),
+            ),
+          ),
+        ],
       ),
     );
   }
