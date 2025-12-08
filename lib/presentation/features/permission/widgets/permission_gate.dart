@@ -21,8 +21,9 @@ class PermissionGate extends ConsumerWidget {
         return PermissionRequestScreen(status: status);
       },
       loading:
-          () =>
-              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          () => PermissionRequestScreen(
+            status: GalleryPermissionStatus.needsRequest,
+          ),
       error:
           (error, stackTrace) => _PermissionErrorView(
             onRetry: () {
