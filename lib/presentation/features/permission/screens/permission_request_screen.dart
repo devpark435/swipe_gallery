@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swipe_gallery/presentation/features/permission/providers/permission_provider.dart';
@@ -24,8 +26,8 @@ class _PermissionRequestScreenState
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (_requested) return;
       _requested = true;
-      // 문구가 먼저 보이도록 약간 지연 후 요청
-      await Future<void>.delayed(const Duration(milliseconds: 500));
+      // 화면 진입 후 안내 문구가 먼저 보이도록 약간의 지연을 둡니다.
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
       if (!mounted) return;
       ref.read(galleryPermissionNotifierProvider.notifier).requestPermission();
     });
@@ -38,48 +40,69 @@ class _PermissionRequestScreenState
     final showSettingsButton = widget.status.requiresSettings;
 
     return Scaffold(
+      backgroundColor: AppColorTheme.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(),
-              Icon(
-                Icons.photo_library_rounded,
-                size: 96,
-                color: AppColorTheme.primary,
+              const Spacer(flex: 3),
+              Center(
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: AppColorTheme.primary.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.photo_library_rounded,
+                    size: 72,
+                    color: AppColorTheme.primary,
+                  ),
+                ),
               ),
               const SizedBox(height: 32),
               Text(
-                '사진 접근 권한이 필요해요',
+                '갤러리 접근 권한 안내',
                 style: AppTextTheme.headlineMedium.copyWith(
                   color: AppColorTheme.textPrimary,
+                  fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               _buildDescription(textTheme, widget.status),
-              const SizedBox(height: 40),
-              FilledButton(
-                onPressed: () => notifier.requestPermission(),
-                child: const Text('권한 허용하기'),
-              ),
-              if (showSettingsButton) ...[
-                const SizedBox(height: 12),
-                OutlinedButton(
+              const SizedBox(height: 48),
+              if (showSettingsButton)
+                FilledButton(
                   onPressed: () => notifier.openSettings(),
-                  child: const Text('설정에서 권한 허용'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: AppColorTheme.primary,
+                    foregroundColor: AppColorTheme.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: const Text('설정에서 권한 허용하기'),
+                )
+              else
+                // 자동 요청 중이거나 needsRequest 상태일 때는 버튼을 최소화
+                TextButton.icon(
+                  onPressed: () => notifier.refreshStatus(),
+                  icon: const Icon(Icons.refresh, size: 20),
+                  label: const Text('다시 시도'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColorTheme.textSecondary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
                 ),
-              ],
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => notifier.refreshStatus(),
-                child: const Text('권한 상태 다시 확인'),
-              ),
-              const Spacer(),
+              const Spacer(flex: 4),
               _PermissionFootnote(textTheme: textTheme),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -91,8 +114,9 @@ class _PermissionRequestScreenState
     TextTheme textTheme,
     GalleryPermissionStatus status,
   ) {
-    final baseStyle = AppTextTheme.bodyMedium.copyWith(
+    final baseStyle = AppTextTheme.bodyLarge.copyWith(
       color: AppColorTheme.textSecondary,
+      height: 1.6,
     );
 
     String message;
@@ -100,17 +124,17 @@ class _PermissionRequestScreenState
     switch (status) {
       case GalleryPermissionStatus.needsRequest:
         message =
-            '스와이프 갤러리를 시작하기 이전에 사진 접근 권한이 필요합니다.\n허용을 누르면 스와이프 갤러리를 시작할 수 있어요.';
+            '소중한 추억을 정리하기 위해\n갤러리 접근 권한이 필요해요.\n\n권한을 허용하면 최근 사진부터\n쉽고 빠르게 정리할 수 있습니다.';
         break;
       case GalleryPermissionStatus.denied:
-        message = '권한이 거부되어 사진을 불러올 수 없어요.\n설정에서 권한을 허용한 뒤 다시 시도해주세요.';
+        message = '사진 접근 권한이 거부되었습니다.\n\n원활한 서비스 이용을 위해\n앱 설정에서 권한을 허용해주세요.';
         break;
       case GalleryPermissionStatus.restricted:
-        message = '시스템에서 사진 접근이 제한되어 있어요.\n필요한 경우 관리자에게 권한을 요청해 주세요.';
+        message = '사진 접근이 시스템에 의해 제한되었습니다.\n권한 설정 상태를 확인해주세요.';
         break;
       case GalleryPermissionStatus.granted:
       case GalleryPermissionStatus.limited:
-        message = '';
+        message = '잠시만 기다려주세요...';
         break;
     }
 
@@ -125,20 +149,64 @@ class _PermissionFootnote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColorTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColorTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 20,
+                color: AppColorTheme.textSecondary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '안심하세요!',
+                style: AppTextTheme.labelLarge.copyWith(
+                  color: AppColorTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildBulletPoint('권한은 오직 사진 정리 기능에만 사용됩니다.', textTheme),
+          const SizedBox(height: 8),
+          _buildBulletPoint('서버에 사진을 전송하거나 저장하지 않습니다.', textTheme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBulletPoint(String text, TextTheme textTheme) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '• 권한은 사진 정리 기능에만 사용되며 서버에 전송되지 않습니다.',
-          style: textTheme.bodySmall?.copyWith(
-            color: AppColorTheme.textSecondary.withOpacity(0.7),
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Container(
+            width: 4,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColorTheme.textSecondary.withOpacity(0.5),
+              shape: BoxShape.circle,
+            ),
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          '• 언제든지 휴지통에서 사진을 복원하거나 삭제할 수 있습니다.',
-          style: textTheme.bodySmall?.copyWith(
-            color: AppColorTheme.textSecondary.withOpacity(0.7),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: textTheme.bodySmall?.copyWith(
+              color: AppColorTheme.textSecondary,
+              height: 1.5,
+            ),
           ),
         ),
       ],
