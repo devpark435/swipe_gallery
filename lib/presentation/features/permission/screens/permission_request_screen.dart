@@ -21,13 +21,13 @@ class _PermissionRequestScreenState
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_requested) {
-        _requested = true;
-        ref
-            .read(galleryPermissionNotifierProvider.notifier)
-            .requestPermission();
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (_requested) return;
+      _requested = true;
+      // 문구가 먼저 보이도록 약간 지연 후 요청
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      if (!mounted) return;
+      ref.read(galleryPermissionNotifierProvider.notifier).requestPermission();
     });
   }
 
