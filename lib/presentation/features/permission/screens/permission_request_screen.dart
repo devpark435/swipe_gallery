@@ -100,7 +100,7 @@ class _PermissionRequestScreenState
     switch (status) {
       case GalleryPermissionStatus.needsRequest:
         message =
-            '스와이프 정리를 시작하려면 사진 앨범 접근 권한이 필요합니다.\n허용을 누르면 최근 사진부터 순차적으로 정리할 수 있어요.';
+            '스와이프 갤러리를 시작하기 이전에 사진 접근 권한이 필요합니다.\n허용을 누르면 스와이프 갤러리를 시작할 수 있어요.';
         break;
       case GalleryPermissionStatus.denied:
         message = '권한이 거부되어 사진을 불러올 수 없어요.\n설정에서 권한을 허용한 뒤 다시 시도해주세요.';
