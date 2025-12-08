@@ -149,41 +149,34 @@ class _SwipeGuideText extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildGuideItem(
-          icon: Icons.arrow_back_rounded,
+        Icon(
+          Icons.arrow_back_ios_rounded,
+          size: 16,
           color: AppColorTheme.error,
-          label: '삭제',
         ),
-        Container(
-          height: 16,
-          width: 1,
-          color: AppColorTheme.border,
-          margin: const EdgeInsets.symmetric(horizontal: 24),
-        ),
-        _buildGuideItem(
-          icon: Icons.arrow_forward_rounded,
-          color: AppColorTheme.primary,
-          label: '넘기기',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGuideItem({
-    required IconData icon,
-    required Color color,
-    required String label,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: color),
         const SizedBox(width: 8),
         Text(
-          label,
+          '삭제',
           style: AppTextTheme.bodyMedium.copyWith(
-            color: AppColorTheme.textSecondary,
-            fontWeight: FontWeight.w600,
+            color: AppColorTheme.error,
+            fontWeight: FontWeight.bold,
           ),
+        ),
+        const SizedBox(width: 24),
+        Container(width: 1, height: 16, color: AppColorTheme.border),
+        const SizedBox(width: 24),
+        Text(
+          '넘기기',
+          style: AppTextTheme.bodyMedium.copyWith(
+            color: AppColorTheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 16,
+          color: AppColorTheme.primary,
         ),
       ],
     );
