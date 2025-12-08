@@ -4,18 +4,38 @@ import 'package:swipe_gallery/presentation/features/permission/providers/permiss
 import 'package:swipe_gallery/theme/app_color_theme.dart';
 import 'package:swipe_gallery/theme/app_text_theme.dart';
 
-class PermissionRequestScreen extends ConsumerWidget {
+class PermissionRequestScreen extends ConsumerStatefulWidget {
   const PermissionRequestScreen({super.key, required this.status});
 
   final GalleryPermissionStatus status;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PermissionRequestScreen> createState() =>
+      _PermissionRequestScreenState();
+}
+
+class _PermissionRequestScreenState
+    extends ConsumerState<PermissionRequestScreen> {
+  bool _requested = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_requested) {
+        _requested = true;
+        ref
+            .read(galleryPermissionNotifierProvider.notifier)
+            .requestPermission();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final notifier = ref.read(galleryPermissionNotifierProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
-
-    final description = _buildDescription(textTheme);
-    final showSettingsButton = status.requiresSettings;
+    final showSettingsButton = widget.status.requiresSettings;
 
     return Scaffold(
       body: SafeArea(
@@ -40,7 +60,7 @@ class PermissionRequestScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              description,
+              _buildDescription(textTheme, widget.status),
               const SizedBox(height: 40),
               FilledButton(
                 onPressed: () => notifier.requestPermission(),
@@ -67,7 +87,10 @@ class PermissionRequestScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDescription(TextTheme textTheme) {
+  Widget _buildDescription(
+    TextTheme textTheme,
+    GalleryPermissionStatus status,
+  ) {
     final baseStyle = AppTextTheme.bodyMedium.copyWith(
       color: AppColorTheme.textSecondary,
     );
@@ -122,4 +145,3 @@ class _PermissionFootnote extends StatelessWidget {
     );
   }
 }
-

@@ -76,4 +76,3 @@ class _PermissionErrorView extends StatelessWidget {
     );
   }
 }
-
