@@ -31,10 +31,28 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(
-            _lastActionWasRemove ? '휴지통으로 이동했어요' : '사진을 넘겼어요',
-            style: AppTextTheme.labelLarge,
+          content: Row(
+            children: [
+              Icon(
+                _lastActionWasRemove
+                    ? Icons.delete_outline_rounded
+                    : Icons.check_circle_rounded,
+                color: context.colors.surface,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                _lastActionWasRemove ? '휴지통으로 이동했어요' : '사진을 넘겼어요',
+                style: AppTextTheme.labelLarge,
+              ),
+            ],
           ),
+          backgroundColor: context.colors.textPrimary.withOpacity(0.9),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
           action: SnackBarAction(
             label: '되돌리기',
             textColor: context.colors.surface,
