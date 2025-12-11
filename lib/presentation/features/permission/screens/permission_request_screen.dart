@@ -123,7 +123,7 @@ class _PermissionRequestScreenState
     switch (status) {
       case GalleryPermissionStatus.needsRequest:
         message =
-            '소중한 추억을 정리하기 위해\n갤러리 접근 권한이 필요해요.\n\n권한을 허용하면 최근 사진부터\n쉽고 빠르게 정리할 수 있습니다.';
+            '소중한 추억을 쓰윽 정리하기 위해\n갤러리 접근 권한이 필요해요.\n\n권한을 허용하면 최근 사진부터\n쉽고 빠르게 정리할 수 있습니다.';
         break;
       case GalleryPermissionStatus.denied:
         message = '사진 접근 권한이 거부되었습니다.\n\n원활한 서비스 이용을 위해\n앱 설정에서 권한을 허용해주세요.';

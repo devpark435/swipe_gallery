@@ -244,7 +244,7 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
           ),
           const Spacer(),
           Text(
-            '스와이프로 정리하기',
+            '쓰윽 정리하기',
             style: AppTextTheme.headlineMedium.copyWith(
               fontWeight: FontWeight.bold,
               color: context.colors.textPrimary,
@@ -252,7 +252,7 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
           ),
           const SizedBox(height: 16),
           Text(
-            '오른쪽으로 넘겨서 사진을 유지하고\n왼쪽으로 넘겨서 삭제하세요.',
+            '오른쪽으로 넘겨서 사진을 유지하고\n왼쪽으로 넘겨서 쓰윽 삭제하세요.',
             textAlign: TextAlign.center,
             style: AppTextTheme.bodyLarge.copyWith(
               color: context.colors.textSecondary,

@@ -77,7 +77,7 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
       appBar: AppBar(
         centerTitle: false,
         title: Text(
-          'Swipe Gallery',
+          '쓰윽',
           style: AppTextTheme.headlineMedium.copyWith(
             color: context.colors.textPrimary,
             fontWeight: FontWeight.bold,
