@@ -36,11 +36,10 @@ class _PermissionRequestScreenState
   @override
   Widget build(BuildContext context) {
     final notifier = ref.read(galleryPermissionNotifierProvider.notifier);
-    final textTheme = Theme.of(context).textTheme;
     final showSettingsButton = widget.status.requiresSettings;
 
     return Scaffold(
-      backgroundColor: AppColorTheme.background,
+      backgroundColor: context.colors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -54,13 +53,13 @@ class _PermissionRequestScreenState
                   width: 140,
                   height: 140,
                   decoration: BoxDecoration(
-                    color: AppColorTheme.primary.withOpacity(0.08),
+                    color: context.colors.primary.withOpacity(0.08),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.photo_library_rounded,
                     size: 72,
-                    color: AppColorTheme.primary,
+                    color: context.colors.primary,
                   ),
                 ),
               ),
@@ -68,21 +67,21 @@ class _PermissionRequestScreenState
               Text(
                 '갤러리 접근 권한 안내',
                 style: AppTextTheme.headlineMedium.copyWith(
-                  color: AppColorTheme.textPrimary,
+                  color: context.colors.textPrimary,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              _buildDescription(textTheme, widget.status),
+              _buildDescription(context, widget.status),
               const SizedBox(height: 48),
               if (showSettingsButton)
                 FilledButton(
                   onPressed: () => notifier.openSettings(),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: AppColorTheme.primary,
-                    foregroundColor: AppColorTheme.surface,
+                    backgroundColor: context.colors.primary,
+                    foregroundColor: context.colors.surface,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -96,12 +95,12 @@ class _PermissionRequestScreenState
                   icon: const Icon(Icons.refresh, size: 20),
                   label: const Text('다시 시도'),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColorTheme.textSecondary,
+                    foregroundColor: context.colors.textSecondary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
               const Spacer(flex: 4),
-              _PermissionFootnote(textTheme: textTheme),
+              const _PermissionFootnote(),
               const SizedBox(height: 24),
             ],
           ),
@@ -111,11 +110,11 @@ class _PermissionRequestScreenState
   }
 
   Widget _buildDescription(
-    TextTheme textTheme,
+    BuildContext context,
     GalleryPermissionStatus status,
   ) {
     final baseStyle = AppTextTheme.bodyLarge.copyWith(
-      color: AppColorTheme.textSecondary,
+      color: context.colors.textSecondary,
       height: 1.6,
     );
 
@@ -143,18 +142,16 @@ class _PermissionRequestScreenState
 }
 
 class _PermissionFootnote extends StatelessWidget {
-  const _PermissionFootnote({required this.textTheme});
-
-  final TextTheme textTheme;
+  const _PermissionFootnote();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColorTheme.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColorTheme.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,27 +161,27 @@ class _PermissionFootnote extends StatelessWidget {
               Icon(
                 Icons.info_outline,
                 size: 20,
-                color: AppColorTheme.textSecondary,
+                color: context.colors.textSecondary,
               ),
               const SizedBox(width: 8),
               Text(
                 '안심하세요!',
                 style: AppTextTheme.labelLarge.copyWith(
-                  color: AppColorTheme.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          _buildBulletPoint('권한은 오직 사진 정리 기능에만 사용됩니다.', textTheme),
+          _buildBulletPoint(context, '권한은 오직 사진 정리 기능에만 사용됩니다.'),
           const SizedBox(height: 8),
-          _buildBulletPoint('서버에 사진을 전송하거나 저장하지 않습니다.', textTheme),
+          _buildBulletPoint(context, '서버에 사진을 전송하거나 저장하지 않습니다.'),
         ],
       ),
     );
   }
 
-  Widget _buildBulletPoint(String text, TextTheme textTheme) {
+  Widget _buildBulletPoint(BuildContext context, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -194,7 +191,7 @@ class _PermissionFootnote extends StatelessWidget {
             width: 4,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColorTheme.textSecondary.withOpacity(0.5),
+              color: context.colors.textSecondary.withOpacity(0.5),
               shape: BoxShape.circle,
             ),
           ),
@@ -203,8 +200,8 @@ class _PermissionFootnote extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: textTheme.bodySmall?.copyWith(
-              color: AppColorTheme.textSecondary,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: context.colors.textSecondary,
               height: 1.5,
             ),
           ),

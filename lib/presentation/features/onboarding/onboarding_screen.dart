@@ -35,7 +35,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColorTheme.surface,
+      backgroundColor: context.colors.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -107,9 +107,9 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
                     width: 240,
                     height: 320,
                     decoration: BoxDecoration(
-                      color: AppColorTheme.background,
+                      color: context.colors.background,
                       borderRadius: BorderRadius.circular(32),
-                      border: Border.all(color: AppColorTheme.border),
+                      border: Border.all(color: context.colors.border),
                     ),
                   ),
                 ),
@@ -131,7 +131,7 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
                       rotate = curve * 0.15;
                       opacity = 1.0 - (curve * 0.5);
                       if (curve > 0.1) {
-                        overlayColor = AppColorTheme.primary;
+                        overlayColor = context.colors.primary;
                         overlayIcon = Icons.check_rounded;
                       }
                     } else if (value < 0.50) {
@@ -143,7 +143,7 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
                       rotate = curve * -0.15;
                       opacity = 1.0 - (curve * 0.5);
                       if (curve > 0.1) {
-                        overlayColor = AppColorTheme.error;
+                        overlayColor = context.colors.error;
                         overlayIcon = Icons.delete_outline_rounded;
                       }
                     } else {
@@ -229,10 +229,10 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
                             ],
                           ),
                           padding: const EdgeInsets.all(12),
-                          child: const Icon(
+                          child: Icon(
                             Icons.touch_app_rounded,
                             size: 32,
-                            color: AppColorTheme.textPrimary,
+                            color: context.colors.textPrimary,
                           ),
                         ),
                       ),
@@ -247,7 +247,7 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
             '스와이프로 정리하기',
             style: AppTextTheme.headlineMedium.copyWith(
               fontWeight: FontWeight.bold,
-              color: AppColorTheme.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -255,7 +255,7 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
             '오른쪽으로 넘겨서 사진을 유지하고\n왼쪽으로 넘겨서 삭제하세요.',
             textAlign: TextAlign.center,
             style: AppTextTheme.bodyLarge.copyWith(
-              color: AppColorTheme.textSecondary,
+              color: context.colors.textSecondary,
               height: 1.5,
             ),
           ),
@@ -304,16 +304,16 @@ class _TrashGuidePageState extends State<_TrashGuidePage>
             width: 200,
             height: 200,
             decoration: BoxDecoration(
-              color: AppColorTheme.background,
+              color: context.colors.background,
               shape: BoxShape.circle,
             ),
             child: Stack(
               alignment: Alignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.delete_outline_rounded,
                   size: 80,
-                  color: AppColorTheme.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
                 AnimatedBuilder(
                   animation: _controller,
@@ -325,11 +325,11 @@ class _TrashGuidePageState extends State<_TrashGuidePage>
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColorTheme.primary,
+                          color: context.colors.primary,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColorTheme.primary.withOpacity(0.3),
+                              color: context.colors.primary.withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -352,7 +352,7 @@ class _TrashGuidePageState extends State<_TrashGuidePage>
             '안전한 휴지통',
             style: AppTextTheme.headlineMedium.copyWith(
               fontWeight: FontWeight.bold,
-              color: AppColorTheme.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -360,7 +360,7 @@ class _TrashGuidePageState extends State<_TrashGuidePage>
             '삭제한 사진은 휴지통에 보관됩니다.\n실수로 지워도 언제든 복구할 수 있어요.',
             textAlign: TextAlign.center,
             style: AppTextTheme.bodyLarge.copyWith(
-              color: AppColorTheme.textSecondary,
+              color: context.colors.textSecondary,
               height: 1.5,
             ),
           ),
@@ -404,7 +404,7 @@ class _DemoCard extends StatelessWidget {
                 child: Icon(
                   Icons.photo_size_select_actual_rounded,
                   size: 64,
-                  color: AppColorTheme.primary.withOpacity(0.3),
+                  color: context.colors.primary.withOpacity(0.3),
                 ),
               ),
             ),
@@ -471,7 +471,7 @@ class _BottomControls extends StatelessWidget {
                 height: 8,
                 decoration: BoxDecoration(
                   color:
-                      isActive ? AppColorTheme.primary : AppColorTheme.border,
+                      isActive ? context.colors.primary : context.colors.border,
                   borderRadius: BorderRadius.circular(4),
                 ),
               );
@@ -484,8 +484,8 @@ class _BottomControls extends StatelessWidget {
               onPressed: onNext,
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: AppColorTheme.primary,
-                foregroundColor: AppColorTheme.surface,
+                backgroundColor: context.colors.primary,
+                foregroundColor: context.colors.surface,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),

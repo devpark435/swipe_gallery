@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swipe_gallery/presentation/features/permission/widgets/permission_gate.dart';
-import 'package:swipe_gallery/theme/app_color_theme.dart';
 import 'package:swipe_gallery/router/app_router.dart';
+import 'package:swipe_gallery/theme/app_color_theme.dart';
 import 'package:swipe_gallery/theme/app_theme.dart';
 
 Future<void> main() async {
@@ -19,13 +19,18 @@ class SwipeGalleryApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Swipe Gallery',
-      theme: AppTheme.theme,
-      color: AppColorTheme.background,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       routerConfig: router,
       builder: (context, child) {
-        return ColoredBox(
-          color: AppColorTheme.background,
-          child: PermissionGate(child: child ?? const SizedBox.shrink()),
+        return Builder(
+          builder: (context) {
+            return ColoredBox(
+              color: context.colors.background,
+              child: PermissionGate(child: child ?? const SizedBox.shrink()),
+            );
+          },
         );
       },
       debugShowCheckedModeBanner: false,

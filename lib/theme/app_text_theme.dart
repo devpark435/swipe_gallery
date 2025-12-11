@@ -5,38 +5,51 @@ import 'package:swipe_gallery/theme/app_color_theme.dart';
 class AppTextTheme {
   AppTextTheme._();
 
-  static const TextStyle displayLarge = TextStyle(
+  static const _baseDisplayLarge = TextStyle(
     fontSize: 34,
     fontWeight: FontWeight.bold,
-    color: AppColorTheme.textPrimary,
     height: 1.2,
   );
 
-  static const TextStyle headlineMedium = TextStyle(
+  static const _baseHeadlineMedium = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.w600,
-    color: AppColorTheme.textPrimary,
     height: 1.3,
   );
 
-  static const TextStyle bodyLarge = TextStyle(
+  static const _baseBodyLarge = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w500,
-    color: AppColorTheme.textPrimary,
     height: 1.4,
   );
 
-  static const TextStyle bodyMedium = TextStyle(
+  static const _baseBodyMedium = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
-    color: AppColorTheme.textSecondary,
     height: 1.4,
   );
 
-  static const TextStyle labelLarge = TextStyle(
+  static const _baseLabelLarge = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
-    color: AppColorTheme.surface,
     height: 1.3,
   );
+
+  // 하위 호환성을 위해 유지 (삭제해도 되지만 기존 코드 수정을 최소화하기 위해)
+  // 하지만 색상은 Theme에서 덮어씌워져야 함.
+  static const displayLarge = _baseDisplayLarge;
+  static const headlineMedium = _baseHeadlineMedium;
+  static const bodyLarge = _baseBodyLarge;
+  static const bodyMedium = _baseBodyMedium;
+  static const labelLarge = _baseLabelLarge;
+
+  static TextTheme getTheme(AppColorTheme colors) {
+    return TextTheme(
+      displayLarge: _baseDisplayLarge.copyWith(color: colors.textPrimary),
+      headlineMedium: _baseHeadlineMedium.copyWith(color: colors.textPrimary),
+      bodyLarge: _baseBodyLarge.copyWith(color: colors.textPrimary),
+      bodyMedium: _baseBodyMedium.copyWith(color: colors.textSecondary),
+      labelLarge: _baseLabelLarge.copyWith(color: colors.surface),
+    );
+  }
 }

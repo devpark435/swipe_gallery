@@ -5,49 +5,59 @@ import 'package:swipe_gallery/theme/app_text_theme.dart';
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get theme {
+  static ThemeData get light {
+    return _baseTheme(
+      brightness: Brightness.light,
+      colors: AppColorTheme.light,
+    );
+  }
+
+  static ThemeData get dark {
+    return _baseTheme(brightness: Brightness.dark, colors: AppColorTheme.dark);
+  }
+
+  static ThemeData _baseTheme({
+    required Brightness brightness,
+    required AppColorTheme colors,
+  }) {
     return ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColorTheme.primary,
-        primary: AppColorTheme.primary,
-        secondary: AppColorTheme.secondary,
-        background: AppColorTheme.background,
-        surface: AppColorTheme.surface,
-        onPrimary: AppColorTheme.surface,
-        onSecondary: AppColorTheme.surface,
-        onBackground: AppColorTheme.textPrimary,
-        onSurface: AppColorTheme.textPrimary,
-        brightness: Brightness.light,
-      ),
-      scaffoldBackgroundColor: AppColorTheme.background,
       useMaterial3: true,
-      appBarTheme: const AppBarTheme(
-        elevation: 0,
-        backgroundColor: AppColorTheme.background,
-        foregroundColor: AppColorTheme.textPrimary,
+      brightness: brightness,
+      extensions: [colors],
+      colorScheme: ColorScheme(
+        brightness: brightness,
+        primary: colors.primary,
+        onPrimary: colors.surface,
+        secondary: colors.secondary,
+        onSecondary: colors.surface,
+        error: colors.error,
+        onError: colors.surface,
+        surface: colors.surface,
+        onSurface: colors.textPrimary,
       ),
-      textTheme: const TextTheme(
-        displayLarge: AppTextTheme.displayLarge,
-        headlineMedium: AppTextTheme.headlineMedium,
-        bodyLarge: AppTextTheme.bodyLarge,
-        bodyMedium: AppTextTheme.bodyMedium,
-        labelLarge: AppTextTheme.labelLarge,
+      scaffoldBackgroundColor: colors.background,
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        backgroundColor: colors.background,
+        foregroundColor: colors.textPrimary,
+        surfaceTintColor: Colors.transparent,
       ),
       cardTheme: CardTheme(
-        color: AppColorTheme.surface,
+        color: colors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         elevation: 6,
         margin: EdgeInsets.zero,
-        shadowColor: AppColorTheme.textSecondary.withOpacity(0.12),
+        shadowColor: colors.textSecondary.withOpacity(0.12),
       ),
-      snackBarTheme: const SnackBarThemeData(
-        backgroundColor: AppColorTheme.textPrimary,
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: colors.textPrimary,
         contentTextStyle: TextStyle(
-          color: AppColorTheme.surface,
+          color: colors.surface,
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
       ),
+      textTheme: AppTextTheme.getTheme(colors),
     );
   }
 }

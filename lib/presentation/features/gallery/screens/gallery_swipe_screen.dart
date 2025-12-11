@@ -37,7 +37,7 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
           ),
           action: SnackBarAction(
             label: '되돌리기',
-            textColor: AppColorTheme.surface,
+            textColor: context.colors.surface,
             onPressed: () {
               final notifier = ref.read(galleryNotifierProvider.notifier);
               if (_lastActionWasRemove) {
@@ -61,7 +61,7 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
         title: Text(
           'Swipe Gallery',
           style: AppTextTheme.headlineMedium.copyWith(
-            color: AppColorTheme.textPrimary,
+            color: context.colors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -150,7 +150,7 @@ class _GallerySkeletonState extends State<_GallerySkeleton>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        final color = AppColorTheme.textPrimary.withOpacity(_animation.value);
+        final color = context.colors.textPrimary.withOpacity(_animation.value);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -194,7 +194,7 @@ class _GallerySkeletonState extends State<_GallerySkeleton>
                 Container(
                   width: 1,
                   height: 16,
-                  color: AppColorTheme.border.withOpacity(0.5),
+                  color: context.colors.border.withOpacity(0.5),
                 ),
                 const SizedBox(width: 24),
                 Container(
@@ -250,13 +250,13 @@ class _GalleryContent extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColorTheme.primary.withOpacity(0.1),
+                color: context.colors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 '남은 사진 ${photos.length}장',
                 style: AppTextTheme.labelLarge.copyWith(
-                  color: AppColorTheme.primary,
+                  color: context.colors.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -291,23 +291,23 @@ class _SwipeGuideText extends StatelessWidget {
         Icon(
           Icons.arrow_back_ios_rounded,
           size: 16,
-          color: AppColorTheme.error,
+          color: context.colors.error,
         ),
         const SizedBox(width: 8),
         Text(
           '삭제',
           style: AppTextTheme.bodyMedium.copyWith(
-            color: AppColorTheme.error,
+            color: context.colors.error,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(width: 24),
-        Container(width: 1, height: 16, color: AppColorTheme.border),
+        Container(width: 1, height: 16, color: context.colors.border),
         const SizedBox(width: 24),
         Text(
           '넘기기',
           style: AppTextTheme.bodyMedium.copyWith(
-            color: AppColorTheme.primary,
+            color: context.colors.primary,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -315,7 +315,7 @@ class _SwipeGuideText extends StatelessWidget {
         Icon(
           Icons.arrow_forward_ios_rounded,
           size: 16,
-          color: AppColorTheme.primary,
+          color: context.colors.primary,
         ),
       ],
     );
@@ -378,13 +378,13 @@ class _SwipeableCard extends StatelessWidget {
       },
       background: _SwipeActionBackground(
         alignment: Alignment.centerLeft,
-        color: AppColorTheme.primary,
+        color: context.colors.primary,
         icon: Icons.check_rounded,
         label: '넘기기',
       ),
       secondaryBackground: _SwipeActionBackground(
         alignment: Alignment.centerRight,
-        color: AppColorTheme.error,
+        color: context.colors.error,
         icon: Icons.delete_outline_rounded,
         label: '삭제',
       ),
@@ -393,7 +393,7 @@ class _SwipeableCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: AppColorTheme.textPrimary.withOpacity(0.08),
+              color: context.colors.textPrimary.withOpacity(0.08),
               blurRadius: 24,
               offset: const Offset(0, 12),
             ),
@@ -415,12 +415,12 @@ class _SwipeableCard extends StatelessWidget {
         SnackBar(
           content: Row(
             children: [
-              Icon(icon, color: AppColorTheme.surface, size: 20),
+              Icon(icon, color: context.colors.surface, size: 20),
               const SizedBox(width: 12),
               Text(message, style: AppTextTheme.labelLarge),
             ],
           ),
-          backgroundColor: AppColorTheme.textPrimary.withOpacity(0.9),
+          backgroundColor: context.colors.textPrimary.withOpacity(0.9),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -448,13 +448,13 @@ class _GalleryEmpty extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColorTheme.background,
+              color: context.colors.background,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColorTheme.border),
+              border: Border.all(color: context.colors.border),
             ),
             child: Icon(
               Icons.check_circle_outline_rounded,
-              color: AppColorTheme.primary,
+              color: context.colors.primary,
               size: 56,
             ),
           ),
@@ -462,7 +462,7 @@ class _GalleryEmpty extends StatelessWidget {
           Text(
             '모든 사진을 확인했어요!',
             style: AppTextTheme.headlineMedium.copyWith(
-              color: AppColorTheme.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -471,7 +471,7 @@ class _GalleryEmpty extends StatelessWidget {
           Text(
             hasTrash ? '휴지통에서 삭제한 사진을 정리해보세요.' : '새로운 사진이 추가되면\n여기서 알려드릴게요.',
             style: AppTextTheme.bodyMedium.copyWith(
-              color: AppColorTheme.textSecondary,
+              color: context.colors.textSecondary,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -487,7 +487,7 @@ class _GalleryEmpty extends StatelessWidget {
                   horizontal: 24,
                   vertical: 16,
                 ),
-                backgroundColor: AppColorTheme.textPrimary,
+                backgroundColor: context.colors.textPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -558,14 +558,14 @@ class _GalleryError extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColorTheme.error.withOpacity(0.1),
+              color: context.colors.error.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isPermissionDenied
                   ? Icons.lock_outline_rounded
                   : Icons.cloud_off_rounded,
-              color: AppColorTheme.error,
+              color: context.colors.error,
               size: 48,
             ),
           ),
@@ -573,7 +573,7 @@ class _GalleryError extends StatelessWidget {
           Text(
             isPermissionDenied ? '사진 접근 권한이 필요해요' : '사진을 불러오지 못했어요',
             style: AppTextTheme.headlineMedium.copyWith(
-              color: AppColorTheme.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -584,7 +584,7 @@ class _GalleryError extends StatelessWidget {
                 ? '설정에서 권한을 허용하면\n갤러리를 다시 볼 수 있어요.'
                 : '일시적인 오류일 수 있어요.\n잠시 후 다시 시도해주세요.',
             style: AppTextTheme.bodyMedium.copyWith(
-              color: AppColorTheme.textSecondary,
+              color: context.colors.textSecondary,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -596,7 +596,7 @@ class _GalleryError extends StatelessWidget {
             icon: const Icon(Icons.refresh_rounded),
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              backgroundColor: AppColorTheme.textPrimary,
+              backgroundColor: context.colors.textPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -611,7 +611,7 @@ class _GalleryError extends StatelessWidget {
               icon: const Icon(Icons.settings_outlined),
               label: const Text('설정으로 이동'),
               style: TextButton.styleFrom(
-                foregroundColor: AppColorTheme.textSecondary,
+                foregroundColor: context.colors.textSecondary,
               ),
             ),
           ],

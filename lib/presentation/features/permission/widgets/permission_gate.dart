@@ -50,12 +50,12 @@ class _PermissionErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 64, color: AppColorTheme.error),
+            Icon(Icons.error_outline, size: 64, color: context.colors.error),
             const SizedBox(height: 16),
             Text(
               '권한 상태를 확인하는 중 오류가 발생했어요.',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColorTheme.textPrimary,
+                color: context.colors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -63,7 +63,7 @@ class _PermissionErrorView extends StatelessWidget {
             Text(
               '네트워크 상태를 확인한 뒤 다시 시도해주세요.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColorTheme.textSecondary,
+                color: context.colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -94,7 +94,7 @@ class _OnboardingGate extends ConsumerWidget {
         if (seen) {
           return child;
         }
-        return OnboardingScreen();
+        return const OnboardingScreen();
       },
       loading:
           () =>
@@ -105,16 +105,16 @@ class _OnboardingGate extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.error_outline,
                     size: 64,
-                    color: AppColorTheme.error,
+                    color: context.colors.error,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     '온보딩 정보를 불러오지 못했어요.',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColorTheme.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),

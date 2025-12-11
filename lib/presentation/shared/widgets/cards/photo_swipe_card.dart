@@ -14,14 +14,14 @@ class PhotoSwipeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: AppColorTheme.surface,
+      color: context.colors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Hero(tag: photo.id, child: _buildImage()),
+            Hero(tag: photo.id, child: _buildImage(context)),
             Positioned(
               left: 0,
               right: 0,
@@ -78,13 +78,13 @@ class PhotoSwipeCard extends StatelessWidget {
     );
   }
 
-  Widget _buildImage() {
+  Widget _buildImage(BuildContext context) {
     if (photo.isLocal) {
       final file = File(photo.imageUrl);
       return Image.file(
         file,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _errorPlaceholder(),
+        errorBuilder: (context, error, stackTrace) => _errorPlaceholder(context),
       );
     }
 
@@ -102,31 +102,31 @@ class PhotoSwipeCard extends StatelessWidget {
                     ? progress.cumulativeBytesLoaded /
                         progress.expectedTotalBytes!
                     : null,
-            color: AppColorTheme.surface,
+            color: context.colors.surface,
           ),
         );
       },
-      errorBuilder: (context, error, stackTrace) => _errorPlaceholder(),
+      errorBuilder: (context, error, stackTrace) => _errorPlaceholder(context),
     );
   }
 
-  Widget _errorPlaceholder() {
+  Widget _errorPlaceholder(BuildContext context) {
     return Container(
-      color: AppColorTheme.background,
+      color: context.colors.background,
       alignment: Alignment.center,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.broken_image_rounded,
-            color: AppColorTheme.textSecondary.withOpacity(0.4),
+            color: context.colors.textSecondary.withOpacity(0.4),
             size: 48,
           ),
           const SizedBox(height: 12),
           Text(
             '이미지를 불러올 수 없어요',
             style: AppTextTheme.bodyMedium.copyWith(
-              color: AppColorTheme.textSecondary.withOpacity(0.6),
+              color: context.colors.textSecondary.withOpacity(0.6),
             ),
           ),
         ],

@@ -33,12 +33,14 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
     });
   }
 
-  void _selectAll(List<PhotoModel> photos) {
+  void _toggleSelectAll(List<PhotoModel> trashPhotos) {
     setState(() {
-      if (_selectedIds.length == photos.length) {
+      if (_selectedIds.length == trashPhotos.length) {
         _selectedIds.clear();
       } else {
-        _selectedIds.addAll(photos.map((p) => p.id));
+        _selectedIds
+          ..clear()
+          ..addAll(trashPhotos.map((photo) => photo.id));
       }
     });
   }
@@ -71,7 +73,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
               Text('사진 $restoredCount장을 복원했어요', style: AppTextTheme.labelLarge),
             ],
           ),
-          backgroundColor: AppColorTheme.primary,
+          backgroundColor: context.colors.primary,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -105,7 +107,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
               '사진 $deleted장을 완전히 삭제했어요',
               style: AppTextTheme.labelLarge,
             ),
-            backgroundColor: AppColorTheme.error,
+            backgroundColor: context.colors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -122,7 +124,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
         ..showSnackBar(
           SnackBar(
             content: Text(error.message, style: AppTextTheme.labelLarge),
-            backgroundColor: AppColorTheme.warning,
+            backgroundColor: context.colors.warning,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -137,6 +139,9 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
   Widget build(BuildContext context) {
     final galleryState = ref.watch(galleryNotifierProvider);
     final trashCount = galleryState.valueOrNull?.trash.length ?? 0;
+    final trashPhotos = galleryState.valueOrNull?.trash ?? [];
+    final allSelected =
+        trashPhotos.isNotEmpty && _selectedIds.length == trashPhotos.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -144,29 +149,25 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
         title: Text(
           '휴지통',
           style: AppTextTheme.headlineMedium.copyWith(
-            color: AppColorTheme.textPrimary,
+            color: context.colors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
-          if (trashCount > 0) ...[
-            TextButton(
-              onPressed: () {
-                final trash = galleryState.valueOrNull?.trash ?? [];
-                _selectAll(trash);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: AppColorTheme.textSecondary,
-                textStyle: AppTextTheme.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w600,
+          if (trashCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: TextButton(
+                onPressed: () => _toggleSelectAll(trashPhotos),
+                style: TextButton.styleFrom(
+                  foregroundColor: context.colors.textPrimary,
+                  textStyle: AppTextTheme.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              child: Text(
-                _selectedIds.length == trashCount ? '선택 해제' : '전체 선택',
+                child: Text(allSelected ? '선택 해제' : '전체 선택'),
               ),
             ),
-            const SizedBox(width: 12),
-          ],
         ],
       ),
       body: SafeArea(
@@ -264,13 +265,13 @@ class _TrashGridItem extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: selected ? AppColorTheme.primary : Colors.transparent,
+            color: selected ? context.colors.primary : Colors.transparent,
             width: 2,
           ),
           boxShadow: [
             if (selected)
               BoxShadow(
-                color: AppColorTheme.primary.withOpacity(0.2),
+                color: context.colors.primary.withOpacity(0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -355,24 +356,26 @@ class _TrashImage extends StatelessWidget {
       return Image.file(
         file,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _thumbnailPlaceholder(),
+        errorBuilder:
+            (context, error, stackTrace) => _thumbnailPlaceholder(context),
       );
     }
 
     return Image.network(
       photo.imageUrl,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => _thumbnailPlaceholder(),
+      errorBuilder:
+          (context, error, stackTrace) => _thumbnailPlaceholder(context),
     );
   }
 
-  Widget _thumbnailPlaceholder() {
+  Widget _thumbnailPlaceholder(BuildContext context) {
     return Container(
-      color: AppColorTheme.background,
+      color: context.colors.background,
       alignment: Alignment.center,
       child: Icon(
         Icons.image_not_supported_rounded,
-        color: AppColorTheme.textSecondary.withOpacity(0.3),
+        color: context.colors.textSecondary.withOpacity(0.3),
         size: 32,
       ),
     );
@@ -392,7 +395,8 @@ class _SelectionIndicator extends StatelessWidget {
       height: 24,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: selected ? AppColorTheme.primary : Colors.black.withOpacity(0.3),
+        color:
+            selected ? context.colors.primary : Colors.black.withOpacity(0.3),
         border: Border.all(color: Colors.white, width: 1.5),
       ),
       child: Icon(
@@ -423,7 +427,7 @@ class _SelectionActionsBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: AppColorTheme.textPrimary,
+        color: context.colors.textPrimary,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -441,8 +445,8 @@ class _SelectionActionsBar extends StatelessWidget {
               Text(
                 '$count장 선택됨',
                 style: AppTextTheme.bodyLarge.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                  color: context.colors.surface,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const Spacer(),
@@ -451,7 +455,7 @@ class _SelectionActionsBar extends StatelessWidget {
                 child: Text(
                   '선택 해제',
                   style: AppTextTheme.bodyMedium.copyWith(
-                    color: Colors.white.withOpacity(0.7),
+                    color: context.colors.surface.withOpacity(0.7),
                   ),
                 ),
               ),
@@ -466,8 +470,8 @@ class _SelectionActionsBar extends StatelessWidget {
                   icon: const Icon(Icons.refresh_rounded, size: 20),
                   label: const Text('복원'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColorTheme.textPrimary,
+                    backgroundColor: context.colors.surface,
+                    foregroundColor: context.colors.textPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -482,8 +486,8 @@ class _SelectionActionsBar extends StatelessWidget {
                   icon: const Icon(Icons.delete_forever_rounded, size: 20),
                   label: const Text('삭제'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColorTheme.error,
-                    foregroundColor: Colors.white,
+                    backgroundColor: context.colors.error,
+                    foregroundColor: context.colors.surface,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -512,13 +516,13 @@ class _TrashEmptyView extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColorTheme.background,
+              color: context.colors.background,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColorTheme.border),
+              border: Border.all(color: context.colors.border),
             ),
             child: Icon(
               Icons.delete_outline_rounded,
-              color: AppColorTheme.textSecondary.withOpacity(0.5),
+              color: context.colors.textSecondary.withOpacity(0.5),
               size: 56,
             ),
           ),
@@ -526,7 +530,7 @@ class _TrashEmptyView extends StatelessWidget {
           Text(
             '휴지통이 비어 있어요',
             style: AppTextTheme.headlineMedium.copyWith(
-              color: AppColorTheme.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -535,7 +539,7 @@ class _TrashEmptyView extends StatelessWidget {
           Text(
             '삭제한 사진은 이곳에 보관돼요.\n필요할 때 언제든 복원할 수 있어요.',
             style: AppTextTheme.bodyMedium.copyWith(
-              color: AppColorTheme.textSecondary,
+              color: context.colors.textSecondary,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -559,14 +563,14 @@ class _TrashErrorView extends StatelessWidget {
         children: [
           Icon(
             Icons.error_outline_rounded,
-            color: AppColorTheme.textSecondary.withOpacity(0.5),
+            color: context.colors.textSecondary.withOpacity(0.5),
             size: 72,
           ),
           const SizedBox(height: 16),
           Text(
             '휴지통을 불러오지 못했어요',
             style: AppTextTheme.headlineMedium.copyWith(
-              color: AppColorTheme.textPrimary,
+              color: context.colors.textPrimary,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -575,7 +579,7 @@ class _TrashErrorView extends StatelessWidget {
           Text(
             '잠시 후 다시 시도해주세요',
             style: AppTextTheme.bodyMedium.copyWith(
-              color: AppColorTheme.textSecondary,
+              color: context.colors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -586,7 +590,7 @@ class _TrashErrorView extends StatelessWidget {
             label: const Text('다시 시도'),
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              backgroundColor: AppColorTheme.textPrimary,
+              backgroundColor: context.colors.textPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),

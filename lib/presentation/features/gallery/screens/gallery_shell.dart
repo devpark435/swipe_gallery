@@ -59,11 +59,11 @@ class _FloatingBottomNavBar extends StatelessWidget {
           child: Container(
             height: 64,
             decoration: BoxDecoration(
-              color: AppColorTheme.textPrimary.withOpacity(0.9),
+              color: context.colors.textPrimary.withOpacity(0.9),
               borderRadius: BorderRadius.circular(32),
               boxShadow: [
                 BoxShadow(
-                  color: AppColorTheme.textPrimary.withOpacity(0.3),
+                  color: context.colors.textPrimary.withOpacity(0.3),
                   blurRadius: 24,
                   offset: const Offset(0, 8),
                 ),
@@ -118,8 +118,8 @@ class _NavBarItem extends StatelessWidget {
     // 선택 여부에 따른 색상 및 애니메이션 값
     final color =
         isSelected
-            ? AppColorTheme.surface
-            : AppColorTheme.surface.withOpacity(0.5);
+            ? context.colors.surface
+            : context.colors.surface.withOpacity(0.5);
     final scale = isSelected ? 1.0 : 0.9;
 
     return GestureDetector(
@@ -164,9 +164,9 @@ class _Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColorTheme.error,
+        color: context.colors.error,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColorTheme.textPrimary, width: 2),
+        border: Border.all(color: context.colors.textPrimary, width: 2),
       ),
       constraints: const BoxConstraints(minWidth: 20),
       child: Text(
