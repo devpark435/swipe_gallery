@@ -5,9 +5,9 @@ class AppColorTheme {
   AppColorTheme._();
 
   static const Color transparent = Colors.transparent;
-  static const Color primary = Color(0xFF3A7AFE);
-  static const Color secondary = Color(0xFFFF6584);
-  static const Color background = Color(0xFFF5F7FB);
+  static const Color primary = Color(0xFF5B8DFE); // 더 부드러운 블루
+  static const Color secondary = Color(0xFFFF7E98); // 더 부드러운 핑크
+  static const Color background = Color(0xFFF8FAFC); // 더 밝은 배경
   static const Color surface = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFF1A1F36);
   static const Color textSecondary = Color(0xFF4E5D78);

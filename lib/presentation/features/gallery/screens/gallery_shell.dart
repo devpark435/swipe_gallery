@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,65 +25,159 @@ class GalleryShell extends ConsumerWidget {
         .watch(galleryNotifierProvider)
         .maybeWhen(data: (gallery) => gallery.trash.length, orElse: () => 0);
 
-    Widget buildNavIcon({required Widget icon}) {
-      if (trashCount == 0) {
-        return icon;
-      }
+    return Scaffold(
+      extendBody: true, // 바텀 네비게이션 뒤로 컨텐츠가 보이도록 설정
+      body: navigationShell,
+      bottomNavigationBar: _FloatingBottomNavBar(
+        currentIndex: navigationShell.currentIndex,
+        onTap: _onDestinationSelected,
+        trashCount: trashCount,
+      ),
+    );
+  }
+}
 
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          icon,
-          Positioned(
-            right: -6,
-            top: -4,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColorTheme.error,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              constraints: const BoxConstraints(minWidth: 18),
-              child: Text(
-                trashCount > 99 ? '99 +' : '$trashCount',
-                style: AppTextTheme.labelLarge.copyWith(fontSize: 10),
-                textAlign: TextAlign.center,
-              ),
+class _FloatingBottomNavBar extends StatelessWidget {
+  const _FloatingBottomNavBar({
+    required this.currentIndex,
+    required this.onTap,
+    required this.trashCount,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  final int trashCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(48, 0, 48, 32),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColorTheme.textPrimary.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColorTheme.textPrimary.withOpacity(0.3),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _NavBarItem(
+                  icon: Icons.photo_library_outlined,
+                  activeIcon: Icons.photo_library_rounded,
+                  label: '갤러리',
+                  isSelected: currentIndex == 0,
+                  onTap: () => onTap(0),
+                ),
+                _NavBarItem(
+                  icon: Icons.delete_outline_rounded,
+                  activeIcon: Icons.delete_rounded,
+                  label: '휴지통',
+                  isSelected: currentIndex == 1,
+                  onTap: () => onTap(1),
+                  badgeCount: trashCount,
+                ),
+              ],
             ),
           ),
-        ],
-      );
-    }
+        ),
+      ),
+    );
+  }
+}
 
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: _onDestinationSelected,
-        backgroundColor: AppColorTheme.surface,
-        indicatorColor: AppColorTheme.primary.withOpacity(0.12),
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          final isSelected = states.contains(WidgetState.selected);
-          return (isSelected ? AppTextTheme.bodyLarge : AppTextTheme.bodyMedium)
-              .copyWith(
-                color:
-                    isSelected
-                        ? AppColorTheme.primary
-                        : AppColorTheme.textSecondary,
-              );
-        }),
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.photo_library_outlined),
-            selectedIcon: Icon(Icons.photo_library_rounded),
-            label: '갤러리',
+class _NavBarItem extends StatelessWidget {
+  const _NavBarItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    this.badgeCount = 0,
+  });
+
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final int badgeCount;
+
+  @override
+  Widget build(BuildContext context) {
+    // 선택 여부에 따른 색상 및 애니메이션 값
+    final color =
+        isSelected
+            ? AppColorTheme.surface
+            : AppColorTheme.surface.withOpacity(0.5);
+    final scale = isSelected ? 1.0 : 0.9;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedScale(
+        scale: scale,
+        duration: const Duration(milliseconds: 200),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(isSelected ? activeIcon : icon, color: color, size: 26),
+                ],
+              ),
+              if (badgeCount > 0)
+                Positioned(
+                  right: -8,
+                  top: -6,
+                  child: _Badge(count: badgeCount),
+                ),
+            ],
           ),
-          NavigationDestination(
-            icon: buildNavIcon(icon: const Icon(Icons.delete_outline)),
-            selectedIcon: buildNavIcon(icon: const Icon(Icons.delete_rounded)),
-            label: '휴지통',
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColorTheme.error,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColorTheme.textPrimary, width: 2),
+      ),
+      constraints: const BoxConstraints(minWidth: 20),
+      child: Text(
+        count > 99 ? '99+' : '$count',
+        style: AppTextTheme.labelLarge.copyWith(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          height: 1.1,
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }
