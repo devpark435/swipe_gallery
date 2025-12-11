@@ -100,7 +100,7 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
                 onOpenTrash: () => context.goNamed(AppRoute.trash.name),
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const _GallerySkeleton(),
             error:
                 (error, stackTrace) => _GalleryError(
                   isPermissionDenied: error is GalleryPermissionException,
@@ -111,6 +111,106 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _GallerySkeleton extends StatefulWidget {
+  const _GallerySkeleton();
+
+  @override
+  State<_GallerySkeleton> createState() => _GallerySkeletonState();
+}
+
+class _GallerySkeletonState extends State<_GallerySkeleton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.05, end: 0.15).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaSize = MediaQuery.sizeOf(context);
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final color = AppColorTheme.textPrimary.withOpacity(_animation.value);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 120,
+              height: 32,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            const Spacer(),
+            Center(
+              child: SizedBox(
+                height: mediaSize.height * 0.62,
+                child: AspectRatio(
+                  aspectRatio: 3 / 4,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 50,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Container(
+                  width: 1,
+                  height: 16,
+                  color: AppColorTheme.border.withOpacity(0.5),
+                ),
+                const SizedBox(width: 24),
+                Container(
+                  width: 50,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
+        );
+      },
     );
   }
 }
