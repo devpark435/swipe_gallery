@@ -19,8 +19,9 @@ class GalleryNotifier extends _$GalleryNotifier {
 
   @override
   FutureOr<GalleryState> build() async {
-    final permissionStatus =
-        await ref.watch(galleryPermissionNotifierProvider.future);
+    final permissionStatus = await ref.watch(
+      galleryPermissionNotifierProvider.future,
+    );
     if (!permissionStatus.isGranted) {
       return const GalleryState();
     }
@@ -62,6 +63,23 @@ class GalleryNotifier extends _$GalleryNotifier {
         .where((element) => element.id != photo.id)
         .toList(growable: false);
 
+    state = AsyncData(current.copyWith(active: updatedActive));
+  }
+
+  /// 패스했던 사진을 다시 맨 앞에 추가 (Undo 용도)
+  void reAddPhoto(PhotoModel photo) {
+    final current = state.valueOrNull;
+    if (current == null) {
+      return;
+    }
+    // 이미 active에 있다면 중복 추가하지 않음
+    final alreadyExists = current.active.any(
+      (element) => element.id == photo.id,
+    );
+    if (alreadyExists) {
+      return;
+    }
+    final updatedActive = <PhotoModel>[photo, ...current.active];
     state = AsyncData(current.copyWith(active: updatedActive));
   }
 

@@ -19,6 +19,38 @@ class GallerySwipeScreen extends ConsumerStatefulWidget {
 }
 
 class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
+  PhotoModel? _lastActionPhoto;
+  bool _lastActionWasRemove = false;
+
+  void _showUndo(BuildContext context) {
+    final photo = _lastActionPhoto;
+    if (photo == null) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            _lastActionWasRemove ? '휴지통으로 이동했어요' : '사진을 넘겼어요',
+            style: AppTextTheme.labelLarge,
+          ),
+          action: SnackBarAction(
+            label: '되돌리기',
+            textColor: AppColorTheme.surface,
+            onPressed: () {
+              final notifier = ref.read(galleryNotifierProvider.notifier);
+              if (_lastActionWasRemove) {
+                notifier.restorePhotos([photo.id]);
+              } else {
+                notifier.reAddPhoto(photo);
+              }
+            },
+          ),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final galleryState = ref.watch(galleryNotifierProvider);
@@ -48,19 +80,26 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: galleryState.when(
-            data:
-                (gallery) => _GalleryContent(
-                  gallery: gallery,
-                  onRemove: (photo) {
-                    ref
-                        .read(galleryNotifierProvider.notifier)
-                        .removePhoto(photo.id);
-                  },
-                  onPass: (photo) {
-                    ref.read(galleryNotifierProvider.notifier).passPhoto(photo);
-                  },
-                  onOpenTrash: () => context.goNamed(AppRoute.trash.name),
-                ),
+            data: (gallery) {
+              return _GalleryContent(
+                gallery: gallery,
+                onRemove: (photo) {
+                  ref
+                      .read(galleryNotifierProvider.notifier)
+                      .removePhoto(photo.id);
+                  _lastActionPhoto = photo;
+                  _lastActionWasRemove = true;
+                  _showUndo(context);
+                },
+                onPass: (photo) {
+                  ref.read(galleryNotifierProvider.notifier).passPhoto(photo);
+                  _lastActionPhoto = photo;
+                  _lastActionWasRemove = false;
+                  _showUndo(context);
+                },
+                onOpenTrash: () => context.goNamed(AppRoute.trash.name),
+              );
+            },
             loading: () => const Center(child: CircularProgressIndicator()),
             error:
                 (error, stackTrace) => _GalleryError(
@@ -196,48 +235,15 @@ class _SwipeDeck extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 덱에서 가장 위에 있는 1장만 가져옵니다.
-    final visiblePhotos = photos.take(1).toList();
+    if (photos.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        for (var i = visiblePhotos.length - 1; i >= 0; i--)
-          Positioned.fill(
-            top: i * 14,
-            bottom: i * 14,
-            child: Transform.translate(
-              offset: Offset(0, i * 12),
-              child: Transform.scale(
-                scale: 1 - (i * 0.05),
-                child:
-                    i == 0
-                        ? _SwipeableCard(
-                          photo: visiblePhotos[i],
-                          onRemove: onRemove,
-                          onPass: onPass,
-                        )
-                        : IgnorePointer(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(32),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColorTheme.textPrimary.withOpacity(
-                                    0.05,
-                                  ),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: PhotoSwipeCard(photo: visiblePhotos[i]),
-                          ),
-                        ),
-              ),
-            ),
-          ),
-      ],
+    // 가장 위에 있는 1장만 렌더링하여 레이아웃 단순화
+    return _SwipeableCard(
+      photo: photos.first,
+      onRemove: onRemove,
+      onPass: onPass,
     );
   }
 }
@@ -411,7 +417,7 @@ class _SwipeActionBackground extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        color: color,
+        color: color.withOpacity(0.85),
         borderRadius: BorderRadius.circular(32),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -419,14 +425,7 @@ class _SwipeActionBackground extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: Colors.white, size: 28),
-          ),
+          Icon(icon, color: Colors.white, size: 28),
           const SizedBox(height: 8),
           Text(
             label,

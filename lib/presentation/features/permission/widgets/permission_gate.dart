@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swipe_gallery/presentation/features/permission/providers/permission_provider.dart';
 import 'package:swipe_gallery/presentation/features/permission/screens/permission_request_screen.dart';
+import 'package:swipe_gallery/presentation/features/onboarding/onboarding_provider.dart';
+import 'package:swipe_gallery/presentation/features/onboarding/onboarding_screen.dart';
 import 'package:swipe_gallery/theme/app_color_theme.dart';
 
 class PermissionGate extends ConsumerWidget {
@@ -16,7 +18,7 @@ class PermissionGate extends ConsumerWidget {
     return permission.when(
       data: (status) {
         if (status.isGranted) {
-          return child;
+          return _OnboardingGate(child: child);
         }
         return PermissionRequestScreen(status: status);
       },
@@ -74,6 +76,59 @@ class _PermissionErrorView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _OnboardingGate extends ConsumerWidget {
+  const _OnboardingGate({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final onboarding = ref.watch(onboardingControllerProvider);
+
+    return onboarding.when(
+      data: (seen) {
+        if (seen) {
+          return child;
+        }
+        return OnboardingScreen();
+      },
+      loading:
+          () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error:
+          (error, stack) => Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: AppColorTheme.error,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '온보딩 정보를 불러오지 못했어요.',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColorTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: () {
+                      final _ = ref.refresh(onboardingSeenProvider.future);
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('다시 시도'),
+                  ),
+                ],
+              ),
+            ),
+          ),
     );
   }
 }
