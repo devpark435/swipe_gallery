@@ -23,7 +23,10 @@ class OnboardingController extends StateNotifier<AsyncValue<bool>> {
   Future<void> _load() async {
     try {
       final seen = await _ref.read(onboardingSeenProvider.future);
-      state = AsyncData(seen);
+      // [개발 모드] 온보딩 화면 UI 수정을 위해 무조건 false로 설정하여 항상 보이게 함
+      // 배포 전이나 UI 수정 완료 후에는 아래 줄을 주석 처리하고 state = AsyncData(seen);을 사용하세요.
+      state = const AsyncData(false); 
+      // state = AsyncData(seen); // 원래 로직: 저장된 상태를 불러옴
     } catch (error, stackTrace) {
       state = AsyncError(error, stackTrace);
     }
