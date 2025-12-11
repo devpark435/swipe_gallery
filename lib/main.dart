@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swipe_gallery/presentation/features/permission/widgets/permission_gate.dart';
 import 'package:swipe_gallery/router/app_router.dart';
@@ -7,6 +8,10 @@ import 'package:swipe_gallery/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   runApp(const ProviderScope(child: SwipeGalleryApp()));
 }
 
