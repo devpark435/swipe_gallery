@@ -10,24 +10,65 @@ part 'gallery_service.g.dart';
 class GalleryService {
   const GalleryService();
 
-  Future<List<PhotoModel>> fetchPhotos() async {
+  Future<List<AssetPathEntity>> fetchAlbums() async {
     final permission = await PhotoManager.requestPermissionExtend();
     if (!permission.isAuth) {
       throw const GalleryPermissionException();
     }
 
-    final paths = await PhotoManager.getAssetPathList(
+    // hasAll: true -> 'Recent'(전체) 앨범 포함
+    // filterOption: 빈 앨범 제외 등을 위한 설정 가능 (여기서는 기본값 사용하되, 추후 확장 가능)
+    final albums = await PhotoManager.getAssetPathList(
       type: RequestType.image,
       hasAll: true,
-      onlyAll: true,
+      filterOption: FilterOptionGroup(
+        containsPathModified: true, // 앨범 수정 시간 포함
+      ),
     );
 
-    if (paths.isEmpty) {
-      return const [];
+    // 1. 'isAll' (Recent) 앨범을 찾아서 맨 앞으로 보냄
+    // 2. assetCount가 0인 앨범은 제외 (빈 앨범 숨기기)
+    final filteredAlbums = <AssetPathEntity>[];
+
+    for (final album in albums) {
+      final count = await album.assetCountAsync;
+      if (count > 0) {
+        if (album.isAll) {
+          filteredAlbums.insert(0, album);
+        } else {
+          filteredAlbums.add(album);
+        }
+      }
     }
 
-    final assets = await paths.first.getAssetListPaged(page: 0, size: 100);
+    return filteredAlbums;
+  }
+
+  Future<List<PhotoModel>> fetchPhotos({AssetPathEntity? album}) async {
+    final permission = await PhotoManager.requestPermissionExtend();
+    if (!permission.isAuth) {
+      throw const GalleryPermissionException();
+    }
+
+    AssetPathEntity? targetAlbum = album;
+
+    if (targetAlbum == null) {
+      final paths = await PhotoManager.getAssetPathList(
+        type: RequestType.image,
+        hasAll: true,
+        onlyAll: true,
+      );
+      if (paths.isEmpty) {
+        return const [];
+      }
+      targetAlbum = paths.first;
+    }
+
+    final assets = await targetAlbum.getAssetListPaged(page: 0, size: 100);
+    // assets.sort((a, b) => a.createDateTime.compareTo(b.createDateTime)); // PhotoManager 정렬 옵션 사용 권장, 여기서는 일단 유지
+    // 오래된 순으로 정렬하기 위해 리스트를 뒤집거나 sort를 사용
     assets.sort((a, b) => a.createDateTime.compareTo(b.createDateTime));
+
     final photos = <PhotoModel>[];
 
     for (final asset in assets) {
