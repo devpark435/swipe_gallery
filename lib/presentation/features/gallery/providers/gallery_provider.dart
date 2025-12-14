@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:photo_manager/photo_manager.dart';
 
 import 'package:swipe_gallery/data/models/gallery/gallery_exception.dart';
 import 'package:swipe_gallery/data/models/gallery/gallery_state.dart';
@@ -17,6 +18,8 @@ class GalleryNotifier extends _$GalleryNotifier {
     trashStorageServiceProvider,
   );
 
+  AssetPathEntity? _selectedAlbum;
+
   @override
   FutureOr<GalleryState> build() async {
     final permissionStatus = await ref.watch(
@@ -26,8 +29,18 @@ class GalleryNotifier extends _$GalleryNotifier {
       return const GalleryState();
     }
 
+    // 초기에는 전체 사진 로드
+    return _loadPhotos();
+  }
+
+  Future<void> selectAlbum(AssetPathEntity? album) async {
+    _selectedAlbum = album;
+    await refresh();
+  }
+
+  Future<GalleryState> _loadPhotos() async {
     final service = ref.read(galleryServiceProvider);
-    final photos = await service.fetchPhotos();
+    final photos = await service.fetchPhotos(album: _selectedAlbum);
     return _buildStateFromPhotos(photos);
   }
 
@@ -160,9 +173,7 @@ class GalleryNotifier extends _$GalleryNotifier {
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final service = ref.read(galleryServiceProvider);
-      final photos = await service.fetchPhotos();
-      return _buildStateFromPhotos(photos);
+      return _loadPhotos();
     });
   }
 

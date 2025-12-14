@@ -5,6 +5,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:swipe_gallery/data/models/gallery/gallery_exception.dart';
 import 'package:swipe_gallery/data/models/gallery/gallery_state.dart';
 import 'package:swipe_gallery/data/models/gallery/photo_model.dart';
+import 'package:swipe_gallery/data/services/gallery/gallery_service.dart';
 import 'package:swipe_gallery/presentation/features/gallery/providers/gallery_provider.dart';
 import 'package:swipe_gallery/presentation/shared/widgets/cards/photo_swipe_card.dart';
 import 'package:swipe_gallery/router/app_router.dart';
@@ -43,7 +44,9 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
               const SizedBox(width: 12),
               Text(
                 _lastActionWasRemove ? '휴지통으로 이동했어요' : '사진을 넘겼어요',
-                style: AppTextTheme.labelLarge,
+                style: AppTextTheme.labelLarge.copyWith(
+                  color: context.colors.surface,
+                ),
               ),
             ],
           ),
@@ -69,6 +72,191 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
       );
   }
 
+  String _getKoreanAlbumName(AssetPathEntity album) {
+    if (album.isAll) return '최근 항목';
+
+    final name = album.name.toLowerCase();
+    if (name.contains('camera')) return '카메라';
+    if (name.contains('screenshot')) return '스크린샷';
+    if (name.contains('download')) return '다운로드';
+    if (name.contains('favorite')) return '즐겨찾기';
+    if (name.contains('instagram')) return '인스타그램';
+    if (name.contains('kakaotalk')) return '카카오톡';
+
+    return album.name;
+  }
+
+  void _showAlbumSelector(BuildContext context) async {
+    final albums = await ref.read(galleryServiceProvider).fetchAlbums();
+    // 현재 선택된 앨범 ID 가져오기
+    final currentAlbumId = ref.read(
+      galleryNotifierProvider.select(
+        (value) =>
+            value.valueOrNull?.active.firstOrNull?.isLocal == true
+                ? null // active photos don't directly store album ID, relying on provider state
+                : null,
+      ),
+    );
+    // GalleryNotifier에 selectedAlbum을 직접 노출하지 않아서,
+    // 여기서는 간단히 UI 개선에 집중하고 선택 상태는 텍스트 스타일로 구분하거나 생략합니다.
+    // 더 정확히 하려면 provider에 selectedAlbum getter를 추가해야 합니다.
+
+    if (!mounted) return;
+
+    final selectedAlbum = await showModalBottomSheet<AssetPathEntity>(
+      context: context,
+      backgroundColor: context.colors.surface,
+      isScrollControlled: true, // 높이 조절을 위해
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.85,
+          expand: false,
+          builder: (context, scrollController) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: context.colors.border.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: Row(
+                    children: [
+                      Text(
+                        '앨범 선택',
+                        style: AppTextTheme.headlineMedium.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: context.colors.textPrimary,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: context.colors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${albums.length}개의 앨범',
+                          style: AppTextTheme.labelMedium.copyWith(
+                            color: context.colors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: albums.length,
+                    padding: const EdgeInsets.only(bottom: 32),
+                    itemBuilder: (context, index) {
+                      final album = albums[index];
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context, album),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: context.colors.background,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: context.colors.border,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    Icons.photo_album_outlined,
+                                    color: context.colors.textSecondary,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _getKoreanAlbumName(album),
+                                        style: AppTextTheme.bodyLarge.copyWith(
+                                          color: context.colors.textPrimary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      FutureBuilder<int>(
+                                        future: album.assetCountAsync,
+                                        builder: (context, snapshot) {
+                                          return Text(
+                                            '${snapshot.data ?? 0}장',
+                                            style: AppTextTheme.bodyMedium
+                                                .copyWith(
+                                                  color:
+                                                      context
+                                                          .colors
+                                                          .textSecondary,
+                                                  fontSize: 13,
+                                                ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: context.colors.textSecondary
+                                      .withOpacity(0.5),
+                                  size: 24,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (selectedAlbum != null) {
+      ref.read(galleryNotifierProvider.notifier).selectAlbum(selectedAlbum);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final galleryState = ref.watch(galleryNotifierProvider);
@@ -76,11 +264,25 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
-        title: Text(
-          '쓰윽',
-          style: AppTextTheme.headlineMedium.copyWith(
-            color: context.colors.textPrimary,
-            fontWeight: FontWeight.bold,
+        title: GestureDetector(
+          onTap: () => _showAlbumSelector(context),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '쓰윽',
+                style: AppTextTheme.headlineMedium.copyWith(
+                  color: context.colors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: context.colors.textPrimary,
+                size: 24,
+              ),
+            ],
           ),
         ),
         actions: [
@@ -435,7 +637,12 @@ class _SwipeableCard extends StatelessWidget {
             children: [
               Icon(icon, color: context.colors.surface, size: 20),
               const SizedBox(width: 12),
-              Text(message, style: AppTextTheme.labelLarge),
+              Text(
+                message,
+                style: AppTextTheme.labelLarge.copyWith(
+                  color: context.colors.surface,
+                ),
+              ),
             ],
           ),
           backgroundColor: context.colors.textPrimary.withOpacity(0.9),

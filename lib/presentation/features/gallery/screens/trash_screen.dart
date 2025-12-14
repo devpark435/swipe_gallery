@@ -181,7 +181,12 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
                 }
 
                 return GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                  padding: const EdgeInsets.fromLTRB(
+                    16,
+                    16,
+                    16,
+                    120,
+                  ), // BottomNav Height + Safe Area + Selection Bar Height 고려하여 여백 추가
                   physics: const BouncingScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
