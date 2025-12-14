@@ -57,6 +57,12 @@ class GalleryService {
         type: RequestType.image,
         hasAll: true,
         onlyAll: true,
+        filterOption: FilterOptionGroup(
+          containsPathModified: true,
+          orders: [
+            const OrderOption(type: OrderOptionType.createDate, asc: false),
+          ],
+        ),
       );
       if (paths.isEmpty) {
         return const [];
@@ -64,28 +70,33 @@ class GalleryService {
       targetAlbum = paths.first;
     }
 
-    final assets = await targetAlbum.getAssetListPaged(page: 0, size: 100);
-    // assets.sort((a, b) => a.createDateTime.compareTo(b.createDateTime)); // PhotoManager 정렬 옵션 사용 권장, 여기서는 일단 유지
-    // 오래된 순으로 정렬하기 위해 리스트를 뒤집거나 sort를 사용
-    assets.sort((a, b) => a.createDateTime.compareTo(b.createDateTime));
+    // 초기 로딩 속도 개선을 위해 30장으로 제한
+    final assets = await targetAlbum.getAssetListPaged(page: 0, size: 30);
 
     final photos = <PhotoModel>[];
 
     for (final asset in assets) {
-      final file = await asset.file;
-      if (file == null) {
+      if (asset.type != AssetType.image) continue;
+
+      try {
+        final file = await asset.file;
+        if (file == null) {
+          continue;
+        }
+
+        photos.add(
+          PhotoModel(
+            id: asset.id,
+            imageUrl: file.path,
+            title: asset.title ?? '내 사진',
+            description: _descriptionFromAsset(asset),
+            isLocal: true,
+          ),
+        );
+      } catch (e) {
+        // 파일 로드 실패 시 건너뜀 (동영상 에러 등 방지)
         continue;
       }
-
-      photos.add(
-        PhotoModel(
-          id: asset.id,
-          imageUrl: file.path,
-          title: asset.title ?? '내 사진',
-          description: _descriptionFromAsset(asset),
-          isLocal: true,
-        ),
-      );
     }
 
     return photos;

@@ -93,13 +93,10 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
       galleryNotifierProvider.select(
         (value) =>
             value.valueOrNull?.active.firstOrNull?.isLocal == true
-                ? null // active photos don't directly store album ID, relying on provider state
+                ? null
                 : null,
       ),
     );
-    // GalleryNotifier에 selectedAlbum을 직접 노출하지 않아서,
-    // 여기서는 간단히 UI 개선에 집중하고 선택 상태는 텍스트 스타일로 구분하거나 생략합니다.
-    // 더 정확히 하려면 provider에 selectedAlbum getter를 추가해야 합니다.
 
     if (!mounted) return;
 
@@ -511,19 +508,9 @@ class _SwipeGuideText extends StatelessWidget {
         Icon(
           Icons.arrow_back_ios_rounded,
           size: 16,
-          color: context.colors.error,
+          color: context.colors.primary,
         ),
         const SizedBox(width: 8),
-        Text(
-          '삭제',
-          style: AppTextTheme.bodyMedium.copyWith(
-            color: context.colors.error,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(width: 24),
-        Container(width: 1, height: 16, color: context.colors.border),
-        const SizedBox(width: 24),
         Text(
           '넘기기',
           style: AppTextTheme.bodyMedium.copyWith(
@@ -531,11 +518,21 @@ class _SwipeGuideText extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        const SizedBox(width: 24),
+        Container(width: 1, height: 16, color: context.colors.border),
+        const SizedBox(width: 24),
+        Text(
+          '삭제',
+          style: AppTextTheme.bodyMedium.copyWith(
+            color: context.colors.error,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(width: 8),
         Icon(
           Icons.arrow_forward_ios_rounded,
           size: 16,
-          color: context.colors.primary,
+          color: context.colors.error,
         ),
       ],
     );
@@ -586,27 +583,29 @@ class _SwipeableCard extends StatelessWidget {
       direction: DismissDirection.horizontal,
       onDismissed: (direction) {
         if (direction == DismissDirection.endToStart) {
+          // 오른쪽에서 왼쪽으로 스와이프 (Left Swipe) -> 넘기기 (Pass)
+          onPass(photo);
+        } else if (direction == DismissDirection.startToEnd) {
+          // 왼쪽에서 오른쪽으로 스와이프 (Right Swipe) -> 삭제 (Remove)
           onRemove(photo);
           _showToast(
             context,
             message: '사진이 휴지통으로 이동했어요',
             icon: Icons.delete_outline_rounded,
           );
-        } else if (direction == DismissDirection.startToEnd) {
-          onPass(photo);
         }
       },
       background: _SwipeActionBackground(
         alignment: Alignment.centerLeft,
-        color: context.colors.primary,
-        icon: Icons.check_rounded,
-        label: '넘기기',
-      ),
-      secondaryBackground: _SwipeActionBackground(
-        alignment: Alignment.centerRight,
         color: context.colors.error,
         icon: Icons.delete_outline_rounded,
         label: '삭제',
+      ),
+      secondaryBackground: _SwipeActionBackground(
+        alignment: Alignment.centerRight,
+        color: context.colors.primary,
+        icon: Icons.check_rounded,
+        label: '넘기기',
       ),
       child: Container(
         decoration: BoxDecoration(
