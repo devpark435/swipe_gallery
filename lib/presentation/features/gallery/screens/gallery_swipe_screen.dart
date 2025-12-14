@@ -646,14 +646,14 @@ class _SwipeableCard extends StatelessWidget {
   }
 }
 
-class _GalleryEmpty extends StatelessWidget {
+class _GalleryEmpty extends ConsumerWidget {
   const _GalleryEmpty({required this.hasTrash, required this.onOpenTrash});
 
   final bool hasTrash;
   final VoidCallback onOpenTrash;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -707,6 +707,18 @@ class _GalleryEmpty extends StatelessWidget {
                 ),
               ),
             ),
+          const SizedBox(height: 16),
+          TextButton.icon(
+            onPressed: () {
+              ref.read(galleryNotifierProvider.notifier).resetAllPassedPhotos();
+            },
+            icon: const Icon(Icons.replay_rounded, size: 20),
+            label: const Text('처음부터 다시 보기'),
+            style: TextButton.styleFrom(
+              foregroundColor: context.colors.textSecondary,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
         ],
       ),
     );
