@@ -44,7 +44,9 @@ class GalleryService {
     return filteredAlbums;
   }
 
-  Future<List<PhotoModel>> fetchPhotos({AssetPathEntity? album}) async {
+  Future<({List<PhotoModel> photos, int totalCount})> fetchPhotos({
+    AssetPathEntity? album,
+  }) async {
     final permission = await PhotoManager.requestPermissionExtend();
     if (!permission.isAuth) {
       throw const GalleryPermissionException();
@@ -65,10 +67,12 @@ class GalleryService {
         ),
       );
       if (paths.isEmpty) {
-        return const [];
+        return (photos: <PhotoModel>[], totalCount: 0);
       }
       targetAlbum = paths.first;
     }
+
+    final totalCount = await targetAlbum.assetCountAsync;
 
     // 초기 로딩 속도 개선을 위해 30장으로 제한
     final assets = await targetAlbum.getAssetListPaged(page: 0, size: 30);
@@ -99,7 +103,7 @@ class GalleryService {
       }
     }
 
-    return photos;
+    return (photos: photos, totalCount: totalCount);
   }
 
   Future<List<String>> deleteAssets(List<String> ids) async {

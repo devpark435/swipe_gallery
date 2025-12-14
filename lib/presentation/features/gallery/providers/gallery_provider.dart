@@ -40,8 +40,8 @@ class GalleryNotifier extends _$GalleryNotifier {
 
   Future<GalleryState> _loadPhotos() async {
     final service = ref.read(galleryServiceProvider);
-    final photos = await service.fetchPhotos(album: _selectedAlbum);
-    return _buildStateFromPhotos(photos);
+    final result = await service.fetchPhotos(album: _selectedAlbum);
+    return _buildStateFromPhotos(result.photos, result.totalCount);
   }
 
   void removePhoto(String id) {
@@ -177,7 +177,10 @@ class GalleryNotifier extends _$GalleryNotifier {
     });
   }
 
-  Future<GalleryState> _buildStateFromPhotos(List<PhotoModel> photos) async {
+  Future<GalleryState> _buildStateFromPhotos(
+    List<PhotoModel> photos,
+    int totalCount,
+  ) async {
     final storedTrashIds = await _trashStorage.loadTrashIds();
     final active = <PhotoModel>[];
     final trash = <PhotoModel>[];
@@ -195,7 +198,7 @@ class GalleryNotifier extends _$GalleryNotifier {
       await _trashStorage.saveTrashIds(actualTrashIds);
     }
 
-    return GalleryState(active: active, trash: trash);
+    return GalleryState(active: active, trash: trash, totalCount: totalCount);
   }
 
   void _persistTrash(List<PhotoModel> trash) {
