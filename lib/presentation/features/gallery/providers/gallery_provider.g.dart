@@ -6,7 +6,7 @@ part of 'gallery_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$galleryNotifierHash() => r'0dde39dc1245306d745d8d657d74fb7b25ccde5f';
+String _$galleryNotifierHash() => r'3c5450bbe45a228c3eea1ea2cd32f3ce17bc7e16';
 
 /// See also [GalleryNotifier].
 @ProviderFor(GalleryNotifier)

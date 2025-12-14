@@ -19,7 +19,7 @@ class GalleryService {
     // hasAll: true -> 'Recent'(전체) 앨범 포함
     // filterOption: 빈 앨범 제외 등을 위한 설정 가능 (여기서는 기본값 사용하되, 추후 확장 가능)
     final albums = await PhotoManager.getAssetPathList(
-      type: RequestType.image,
+      type: RequestType.common, // 이미지 + 비디오 모두 포함
       hasAll: true,
       filterOption: FilterOptionGroup(
         containsPathModified: true, // 앨범 수정 시간 포함
@@ -56,7 +56,7 @@ class GalleryService {
 
     if (targetAlbum == null) {
       final paths = await PhotoManager.getAssetPathList(
-        type: RequestType.image,
+        type: RequestType.common, // 이미지 + 비디오 모두 포함
         hasAll: true,
         onlyAll: true,
         filterOption: FilterOptionGroup(
@@ -80,7 +80,10 @@ class GalleryService {
     final photos = <PhotoModel>[];
 
     for (final asset in assets) {
-      if (asset.type != AssetType.image) continue;
+      // 이미지 또는 비디오 타입만 처리
+      if (asset.type != AssetType.image && asset.type != AssetType.video) {
+        continue;
+      }
 
       try {
         final file = await asset.file;
@@ -95,10 +98,11 @@ class GalleryService {
             title: asset.title ?? '내 사진',
             description: _descriptionFromAsset(asset),
             isLocal: true,
+            isVideo: asset.type == AssetType.video, // 비디오 여부 추가
           ),
         );
       } catch (e) {
-        // 파일 로드 실패 시 건너뜀 (동영상 에러 등 방지)
+        // 파일 로드 실패 시 건너뜀
         continue;
       }
     }
