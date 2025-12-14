@@ -89,14 +89,8 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
   void _showAlbumSelector(BuildContext context) async {
     final albums = await ref.read(galleryServiceProvider).fetchAlbums();
     // 현재 선택된 앨범 ID 가져오기
-    final currentAlbumId = ref.read(
-      galleryNotifierProvider.select(
-        (value) =>
-            value.valueOrNull?.active.firstOrNull?.isLocal == true
-                ? null
-                : null,
-      ),
-    );
+    final currentAlbumId =
+        ref.read(galleryNotifierProvider).valueOrNull?.selectedAlbumId;
 
     if (!mounted) return;
 
@@ -166,75 +160,124 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
                     padding: const EdgeInsets.only(bottom: 32),
                     itemBuilder: (context, index) {
                       final album = albums[index];
-                      return Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => Navigator.pop(context, album),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 16,
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: context.colors.background,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: context.colors.border,
-                                      width: 1,
+                      final isSelected = album.id == currentAlbumId;
+                      return Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected
+                                  ? context.colors.primary.withOpacity(0.08)
+                                  : context.colors.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color:
+                                isSelected
+                                    ? context.colors.primary
+                                    : Colors.transparent,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => Navigator.pop(context, album),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          isSelected
+                                              ? context.colors.primary
+                                              : context.colors.background,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color:
+                                            isSelected
+                                                ? Colors.transparent
+                                                : context.colors.border,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Icon(
+                                      album.isAll
+                                          ? Icons.photo_library_rounded
+                                          : Icons.folder_rounded,
+                                      color:
+                                          isSelected
+                                              ? Colors.white
+                                              : context.colors.textSecondary,
+                                      size: 24,
                                     ),
                                   ),
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    Icons.photo_album_outlined,
-                                    color: context.colors.textSecondary,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _getKoreanAlbumName(album),
-                                        style: AppTextTheme.bodyLarge.copyWith(
-                                          color: context.colors.textPrimary,
-                                          fontWeight: FontWeight.w600,
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _getKoreanAlbumName(album),
+                                          style: AppTextTheme.bodyLarge
+                                              .copyWith(
+                                                color:
+                                                    isSelected
+                                                        ? context.colors.primary
+                                                        : context
+                                                            .colors
+                                                            .textPrimary,
+                                                fontWeight:
+                                                    isSelected
+                                                        ? FontWeight.bold
+                                                        : FontWeight.w600,
+                                              ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      FutureBuilder<int>(
-                                        future: album.assetCountAsync,
-                                        builder: (context, snapshot) {
-                                          return Text(
-                                            '${snapshot.data ?? 0}장',
-                                            style: AppTextTheme.bodyMedium
-                                                .copyWith(
-                                                  color:
-                                                      context
-                                                          .colors
-                                                          .textSecondary,
-                                                  fontSize: 13,
-                                                ),
-                                          );
-                                        },
-                                      ),
-                                    ],
+                                        const SizedBox(height: 4),
+                                        FutureBuilder<int>(
+                                          future: album.assetCountAsync,
+                                          builder: (context, snapshot) {
+                                            return Text(
+                                              '${snapshot.data ?? 0}장',
+                                              style: AppTextTheme.bodyMedium
+                                                  .copyWith(
+                                                    color:
+                                                        context
+                                                            .colors
+                                                            .textSecondary,
+                                                    fontSize: 13,
+                                                  ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  color: context.colors.textSecondary
-                                      .withOpacity(0.5),
-                                  size: 24,
-                                ),
-                              ],
+                                  if (isSelected)
+                                    Icon(
+                                      Icons.check_circle_rounded,
+                                      color: context.colors.primary,
+                                      size: 24,
+                                    )
+                                  else
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: context.colors.textSecondary
+                                          .withOpacity(0.5),
+                                      size: 24,
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

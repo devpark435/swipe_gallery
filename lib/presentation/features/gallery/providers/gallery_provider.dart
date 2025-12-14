@@ -198,7 +198,12 @@ class GalleryNotifier extends _$GalleryNotifier {
       await _trashStorage.saveTrashIds(actualTrashIds);
     }
 
-    return GalleryState(active: active, trash: trash, totalCount: totalCount);
+    return GalleryState(
+      active: active,
+      trash: trash,
+      totalCount: totalCount,
+      selectedAlbumId: _selectedAlbum?.id,
+    );
   }
 
   void _persistTrash(List<PhotoModel> trash) {
