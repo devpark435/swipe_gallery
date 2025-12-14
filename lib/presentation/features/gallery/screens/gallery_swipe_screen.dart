@@ -23,53 +23,20 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
   PhotoModel? _lastActionPhoto;
   bool _lastActionWasRemove = false;
 
-  void _showUndo(BuildContext context) {
+  void _undoAction() {
     final photo = _lastActionPhoto;
     if (photo == null) return;
 
-    final messenger = ScaffoldMessenger.of(context);
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(
-                _lastActionWasRemove
-                    ? Icons.delete_outline_rounded
-                    : Icons.check_circle_rounded,
-                color: context.colors.surface,
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                _lastActionWasRemove ? '휴지통으로 이동했어요' : '사진을 넘겼어요',
-                style: AppTextTheme.labelLarge.copyWith(
-                  color: context.colors.surface,
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: context.colors.textPrimary.withOpacity(0.9),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.all(16),
-          action: SnackBarAction(
-            label: '되돌리기',
-            textColor: context.colors.surface,
-            onPressed: () {
-              final notifier = ref.read(galleryNotifierProvider.notifier);
-              if (_lastActionWasRemove) {
-                notifier.restorePhotos([photo.id]);
-              } else {
-                notifier.reAddPhoto(photo);
-              }
-            },
-          ),
-        ),
-      );
+    final notifier = ref.read(galleryNotifierProvider.notifier);
+    if (_lastActionWasRemove) {
+      notifier.restorePhotos([photo.id]);
+    } else {
+      notifier.reAddPhoto(photo);
+    }
+
+    setState(() {
+      _lastActionPhoto = null;
+    });
   }
 
   String _getKoreanAlbumName(AssetPathEntity album) {
@@ -326,6 +293,25 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
           ),
         ),
         actions: [
+          if (_lastActionPhoto != null)
+            TextButton.icon(
+              onPressed: _undoAction,
+              icon: Icon(
+                Icons.undo_rounded,
+                color: context.colors.textPrimary,
+                size: 20,
+              ),
+              label: Text(
+                '되돌리기',
+                style: AppTextTheme.labelLarge.copyWith(
+                  color: context.colors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+            ),
           IconButton(
             onPressed: () {
               ref.read(galleryNotifierProvider.notifier).refresh();
@@ -347,15 +333,17 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
                   ref
                       .read(galleryNotifierProvider.notifier)
                       .removePhoto(photo.id);
-                  _lastActionPhoto = photo;
-                  _lastActionWasRemove = true;
-                  _showUndo(context);
+                  setState(() {
+                    _lastActionPhoto = photo;
+                    _lastActionWasRemove = true;
+                  });
                 },
                 onPass: (photo) {
                   ref.read(galleryNotifierProvider.notifier).passPhoto(photo);
-                  _lastActionPhoto = photo;
-                  _lastActionWasRemove = false;
-                  _showUndo(context);
+                  setState(() {
+                    _lastActionPhoto = photo;
+                    _lastActionWasRemove = false;
+                  });
                 },
                 onOpenTrash: () => context.goNamed(AppRoute.trash.name),
               );
@@ -631,11 +619,6 @@ class _SwipeableCard extends StatelessWidget {
         } else if (direction == DismissDirection.startToEnd) {
           // 왼쪽에서 오른쪽으로 스와이프 (Right Swipe) -> 삭제 (Remove)
           onRemove(photo);
-          _showToast(
-            context,
-            message: '사진이 휴지통으로 이동했어요',
-            icon: Icons.delete_outline_rounded,
-          );
         }
       },
       background: _SwipeActionBackground(
@@ -664,38 +647,6 @@ class _SwipeableCard extends StatelessWidget {
         child: PhotoSwipeCard(photo: photo),
       ),
     );
-  }
-
-  void _showToast(
-    BuildContext context, {
-    required String message,
-    required IconData icon,
-  }) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(icon, color: context.colors.surface, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                message,
-                style: AppTextTheme.labelLarge.copyWith(
-                  color: context.colors.surface,
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: context.colors.textPrimary.withOpacity(0.9),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.all(16),
-          elevation: 0,
-        ),
-      );
   }
 }
 
