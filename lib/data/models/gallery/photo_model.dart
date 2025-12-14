@@ -11,6 +11,8 @@ class PhotoModel {
   final String description;
   @JsonKey(name: 'is_local', defaultValue: false)
   final bool isLocal;
+  @JsonKey(name: 'is_video', defaultValue: false)
+  final bool isVideo;
 
   const PhotoModel({
     required this.id,
@@ -18,6 +20,7 @@ class PhotoModel {
     required this.title,
     required this.description,
     this.isLocal = false,
+    this.isVideo = false,
   });
 
   factory PhotoModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +33,7 @@ class PhotoModel {
         title: json['title'] as String? ?? '알 수 없는 사진',
         description: json['description'] as String? ?? '',
         isLocal: json['is_local'] as bool? ?? false,
+        isVideo: json['is_video'] as bool? ?? false,
       );
     }
   }
@@ -42,6 +46,7 @@ class PhotoModel {
     String? title,
     String? description,
     bool? isLocal,
+    bool? isVideo,
   }) {
     return PhotoModel(
       id: id ?? this.id,
@@ -49,6 +54,7 @@ class PhotoModel {
       title: title ?? this.title,
       description: description ?? this.description,
       isLocal: isLocal ?? this.isLocal,
+      isVideo: isVideo ?? this.isVideo,
     );
   }
 }

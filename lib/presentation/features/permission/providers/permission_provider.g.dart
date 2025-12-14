@@ -7,7 +7,7 @@ part of 'permission_provider.dart';
 // **************************************************************************
 
 String _$galleryPermissionNotifierHash() =>
-    r'227068e2ce2a03cee80538595d84e2d78c67fdd3';
+    r'04e54f05b42df658b86d4719b2e211ef757ded51';
 
 /// See also [GalleryPermissionNotifier].
 @ProviderFor(GalleryPermissionNotifier)

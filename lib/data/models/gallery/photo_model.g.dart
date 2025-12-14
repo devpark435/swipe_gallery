@@ -12,6 +12,7 @@ PhotoModel _$PhotoModelFromJson(Map<String, dynamic> json) => PhotoModel(
   title: json['title'] as String,
   description: json['description'] as String,
   isLocal: json['is_local'] as bool? ?? false,
+  isVideo: json['is_video'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$PhotoModelToJson(PhotoModel instance) =>
@@ -21,4 +22,5 @@ Map<String, dynamic> _$PhotoModelToJson(PhotoModel instance) =>
       'title': instance.title,
       'description': instance.description,
       'is_local': instance.isLocal,
+      'is_video': instance.isVideo,
     };

@@ -6,7 +6,7 @@ import 'package:swipe_gallery/data/models/gallery/gallery_exception.dart';
 import 'package:swipe_gallery/data/models/gallery/gallery_state.dart';
 import 'package:swipe_gallery/data/models/gallery/photo_model.dart';
 import 'package:swipe_gallery/data/services/gallery/gallery_service.dart';
-import 'package:swipe_gallery/data/services/gallery/trash_storage_service.dart';
+import 'package:swipe_gallery/data/services/gallery/photo_persistence_service.dart';
 import 'package:swipe_gallery/presentation/features/permission/providers/permission_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -14,11 +14,13 @@ part 'gallery_provider.g.dart';
 
 @riverpod
 class GalleryNotifier extends _$GalleryNotifier {
-  late final TrashStorageService _trashStorage = ref.read(
-    trashStorageServiceProvider,
+  late final PhotoPersistenceService _persistence = ref.read(
+    photoPersistenceServiceProvider,
   );
 
   AssetPathEntity? _selectedAlbum;
+  final Set<String> _skippedIdsCache = {};
+  final Set<String> _trashIdsCache = {};
 
   @override
   FutureOr<GalleryState> build() async {
@@ -40,8 +42,8 @@ class GalleryNotifier extends _$GalleryNotifier {
 
   Future<GalleryState> _loadPhotos() async {
     final service = ref.read(galleryServiceProvider);
-    final photos = await service.fetchPhotos(album: _selectedAlbum);
-    return _buildStateFromPhotos(photos);
+    final result = await service.fetchPhotos(album: _selectedAlbum);
+    return _buildStateFromPhotos(result.photos, result.totalCount);
   }
 
   void removePhoto(String id) {
@@ -60,10 +62,12 @@ class GalleryNotifier extends _$GalleryNotifier {
       ..removeAt(targetIndex);
     final updatedTrash = <PhotoModel>[target, ...current.trash];
 
+    _trashIdsCache.add(id);
+    _persistTrashIds();
+
     state = AsyncData(
       current.copyWith(active: updatedActive, trash: updatedTrash),
     );
-    _persistTrash(updatedTrash);
   }
 
   void passPhoto(PhotoModel photo) {
@@ -75,6 +79,9 @@ class GalleryNotifier extends _$GalleryNotifier {
     final updatedActive = current.active
         .where((element) => element.id != photo.id)
         .toList(growable: false);
+
+    _skippedIdsCache.add(photo.id);
+    _persistSkippedIds();
 
     state = AsyncData(current.copyWith(active: updatedActive));
   }
@@ -92,6 +99,12 @@ class GalleryNotifier extends _$GalleryNotifier {
     if (alreadyExists) {
       return;
     }
+
+    if (_skippedIdsCache.contains(photo.id)) {
+      _skippedIdsCache.remove(photo.id);
+      _persistSkippedIds();
+    }
+
     final updatedActive = <PhotoModel>[photo, ...current.active];
     state = AsyncData(current.copyWith(active: updatedActive));
   }
@@ -124,10 +137,12 @@ class GalleryNotifier extends _$GalleryNotifier {
         .toList(growable: false);
     final updatedActive = <PhotoModel>[...restored, ...current.active];
 
+    _trashIdsCache.removeAll(selectedIds);
+    _persistTrashIds();
+
     state = AsyncData(
       current.copyWith(active: updatedActive, trash: updatedTrash),
     );
-    _persistTrash(updatedTrash);
   }
 
   Future<int> purgePhoto(String id) {
@@ -155,8 +170,10 @@ class GalleryNotifier extends _$GalleryNotifier {
         .where((photo) => !deletedSet.contains(photo.id))
         .toList(growable: false);
 
+    _trashIdsCache.removeAll(deletedSet);
+    _persistTrashIds();
+
     state = AsyncData(current.copyWith(trash: updatedTrash));
-    _persistTrash(updatedTrash);
     return deletedIds.length;
   }
 
@@ -177,29 +194,43 @@ class GalleryNotifier extends _$GalleryNotifier {
     });
   }
 
-  Future<GalleryState> _buildStateFromPhotos(List<PhotoModel> photos) async {
-    final storedTrashIds = await _trashStorage.loadTrashIds();
+  Future<GalleryState> _buildStateFromPhotos(
+    List<PhotoModel> photos,
+    int totalCount,
+  ) async {
+    final storedTrashIds = await _persistence.loadTrashIds();
+    final storedSkippedIds = await _persistence.loadSkippedIds();
+
+    _trashIdsCache.clear();
+    _trashIdsCache.addAll(storedTrashIds);
+
+    _skippedIdsCache.clear();
+    _skippedIdsCache.addAll(storedSkippedIds);
+
     final active = <PhotoModel>[];
     final trash = <PhotoModel>[];
 
     for (final photo in photos) {
-      if (storedTrashIds.contains(photo.id)) {
+      if (_trashIdsCache.contains(photo.id)) {
         trash.add(photo);
-      } else {
+      } else if (!_skippedIdsCache.contains(photo.id)) {
         active.add(photo);
       }
     }
 
-    final actualTrashIds = {for (final photo in trash) photo.id};
-    if (!setEquals(actualTrashIds, storedTrashIds)) {
-      await _trashStorage.saveTrashIds(actualTrashIds);
-    }
-
-    return GalleryState(active: active, trash: trash);
+    return GalleryState(
+      active: active,
+      trash: trash,
+      totalCount: totalCount,
+      selectedAlbumId: _selectedAlbum?.id,
+    );
   }
 
-  void _persistTrash(List<PhotoModel> trash) {
-    final ids = {for (final photo in trash) photo.id};
-    unawaited(_trashStorage.saveTrashIds(ids));
+  void _persistTrashIds() {
+    unawaited(_persistence.saveTrashIds(_trashIdsCache));
+  }
+
+  void _persistSkippedIds() {
+    unawaited(_persistence.saveSkippedIds(_skippedIdsCache));
   }
 }

@@ -19,7 +19,7 @@ class GalleryService {
     // hasAll: true -> 'Recent'(전체) 앨범 포함
     // filterOption: 빈 앨범 제외 등을 위한 설정 가능 (여기서는 기본값 사용하되, 추후 확장 가능)
     final albums = await PhotoManager.getAssetPathList(
-      type: RequestType.image,
+      type: RequestType.common, // 이미지 + 비디오 모두 포함
       hasAll: true,
       filterOption: FilterOptionGroup(
         containsPathModified: true, // 앨범 수정 시간 포함
@@ -44,7 +44,9 @@ class GalleryService {
     return filteredAlbums;
   }
 
-  Future<List<PhotoModel>> fetchPhotos({AssetPathEntity? album}) async {
+  Future<({List<PhotoModel> photos, int totalCount})> fetchPhotos({
+    AssetPathEntity? album,
+  }) async {
     final permission = await PhotoManager.requestPermissionExtend();
     if (!permission.isAuth) {
       throw const GalleryPermissionException();
@@ -54,41 +56,58 @@ class GalleryService {
 
     if (targetAlbum == null) {
       final paths = await PhotoManager.getAssetPathList(
-        type: RequestType.image,
+        type: RequestType.common, // 이미지 + 비디오 모두 포함
         hasAll: true,
         onlyAll: true,
+        filterOption: FilterOptionGroup(
+          containsPathModified: true,
+          orders: [
+            const OrderOption(type: OrderOptionType.createDate, asc: false),
+          ],
+        ),
       );
       if (paths.isEmpty) {
-        return const [];
+        return (photos: <PhotoModel>[], totalCount: 0);
       }
       targetAlbum = paths.first;
     }
 
-    final assets = await targetAlbum.getAssetListPaged(page: 0, size: 100);
-    // assets.sort((a, b) => a.createDateTime.compareTo(b.createDateTime)); // PhotoManager 정렬 옵션 사용 권장, 여기서는 일단 유지
-    // 오래된 순으로 정렬하기 위해 리스트를 뒤집거나 sort를 사용
-    assets.sort((a, b) => a.createDateTime.compareTo(b.createDateTime));
+    final totalCount = await targetAlbum.assetCountAsync;
+
+    // 초기 로딩 속도 개선을 위해 30장으로 제한
+    final assets = await targetAlbum.getAssetListPaged(page: 0, size: 30);
 
     final photos = <PhotoModel>[];
 
     for (final asset in assets) {
-      final file = await asset.file;
-      if (file == null) {
+      // 이미지 또는 비디오 타입만 처리
+      if (asset.type != AssetType.image && asset.type != AssetType.video) {
         continue;
       }
 
-      photos.add(
-        PhotoModel(
-          id: asset.id,
-          imageUrl: file.path,
-          title: asset.title ?? '내 사진',
-          description: _descriptionFromAsset(asset),
-          isLocal: true,
-        ),
-      );
+      try {
+        final file = await asset.file;
+        if (file == null) {
+          continue;
+        }
+
+        photos.add(
+          PhotoModel(
+            id: asset.id,
+            imageUrl: file.path,
+            title: asset.title ?? '내 사진',
+            description: _descriptionFromAsset(asset),
+            isLocal: true,
+            isVideo: asset.type == AssetType.video, // 비디오 여부 추가
+          ),
+        );
+      } catch (e) {
+        // 파일 로드 실패 시 건너뜀
+        continue;
+      }
     }
 
-    return photos;
+    return (photos: photos, totalCount: totalCount);
   }
 
   Future<List<String>> deleteAssets(List<String> ids) async {
