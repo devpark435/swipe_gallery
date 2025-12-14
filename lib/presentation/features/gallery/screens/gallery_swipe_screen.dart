@@ -498,7 +498,7 @@ class _GalleryContent extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                '남은 사진 ${photos.length}장 / 전체 ${gallery.totalCount}장',
+                '남은 사진 ${gallery.remainingCount}장 / 전체 ${gallery.totalCount}장',
                 style: AppTextTheme.labelLarge.copyWith(
                   color: context.colors.primary,
                   fontWeight: FontWeight.bold,
