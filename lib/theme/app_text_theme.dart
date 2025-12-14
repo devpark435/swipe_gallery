@@ -58,6 +58,6 @@ class AppTextTheme {
       bodyMedium: _baseBodyMedium.copyWith(color: colors.textSecondary),
       labelLarge: _baseLabelLarge.copyWith(color: colors.surface),
       labelMedium: _baseLabelMedium.copyWith(color: colors.textSecondary),
-    );
+    ).apply(fontFamily: 'Pretendard');
   }
 }
