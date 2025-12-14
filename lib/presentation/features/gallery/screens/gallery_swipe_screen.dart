@@ -20,23 +20,23 @@ class GallerySwipeScreen extends ConsumerStatefulWidget {
 }
 
 class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
-  PhotoModel? _lastActionPhoto;
-  bool _lastActionWasRemove = false;
+  final List<({PhotoModel photo, bool isRemove})> _actionHistory = [];
 
   void _undoAction() {
-    final photo = _lastActionPhoto;
-    if (photo == null) return;
+    if (_actionHistory.isEmpty) return;
+
+    final lastAction = _actionHistory.removeLast();
+    final photo = lastAction.photo;
+    final isRemove = lastAction.isRemove;
 
     final notifier = ref.read(galleryNotifierProvider.notifier);
-    if (_lastActionWasRemove) {
+    if (isRemove) {
       notifier.restorePhotos([photo.id]);
     } else {
       notifier.reAddPhoto(photo);
     }
 
-    setState(() {
-      _lastActionPhoto = null;
-    });
+    setState(() {});
   }
 
   String _getKoreanAlbumName(AssetPathEntity album) {
@@ -293,31 +293,29 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
           ),
         ),
         actions: [
-          if (_lastActionPhoto != null)
-            TextButton.icon(
-              onPressed: _undoAction,
-              icon: Icon(
-                Icons.undo_rounded,
-                color: context.colors.textPrimary,
-                size: 20,
-              ),
-              label: Text(
-                '되돌리기',
-                style: AppTextTheme.labelLarge.copyWith(
-                  color: context.colors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+          TextButton.icon(
+            onPressed: _actionHistory.isNotEmpty ? _undoAction : null,
+            icon: Icon(
+              Icons.undo_rounded,
+              color:
+                  _actionHistory.isNotEmpty
+                      ? context.colors.textPrimary
+                      : context.colors.textSecondary.withOpacity(0.3),
+              size: 20,
+            ),
+            label: Text(
+              '되돌리기',
+              style: AppTextTheme.labelLarge.copyWith(
+                color:
+                    _actionHistory.isNotEmpty
+                        ? context.colors.textPrimary
+                        : context.colors.textSecondary.withOpacity(0.3),
+                fontWeight: FontWeight.bold,
               ),
             ),
-          IconButton(
-            onPressed: () {
-              ref.read(galleryNotifierProvider.notifier).refresh();
-            },
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: '사진 새로고침',
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -334,15 +332,13 @@ class _GallerySwipeScreenState extends ConsumerState<GallerySwipeScreen> {
                       .read(galleryNotifierProvider.notifier)
                       .removePhoto(photo.id);
                   setState(() {
-                    _lastActionPhoto = photo;
-                    _lastActionWasRemove = true;
+                    _actionHistory.add((photo: photo, isRemove: true));
                   });
                 },
                 onPass: (photo) {
                   ref.read(galleryNotifierProvider.notifier).passPhoto(photo);
                   setState(() {
-                    _lastActionPhoto = photo;
-                    _lastActionWasRemove = false;
+                    _actionHistory.add((photo: photo, isRemove: false));
                   });
                 },
                 onOpenTrash: () => context.goNamed(AppRoute.trash.name),
