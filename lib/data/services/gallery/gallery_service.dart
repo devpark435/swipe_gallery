@@ -46,6 +46,8 @@ class GalleryService {
 
   Future<({List<PhotoModel> photos, int totalCount})> fetchPhotos({
     AssetPathEntity? album,
+    int page = 0,
+    int size = 30,
   }) async {
     final permission = await PhotoManager.requestPermissionExtend();
     if (!permission.isAuth) {
@@ -75,7 +77,7 @@ class GalleryService {
     final totalCount = await targetAlbum.assetCountAsync;
 
     // 초기 로딩 속도 개선을 위해 30장으로 제한
-    final assets = await targetAlbum.getAssetListPaged(page: 0, size: 30);
+    final assets = await targetAlbum.getAssetListPaged(page: page, size: size);
 
     final photos = <PhotoModel>[];
 

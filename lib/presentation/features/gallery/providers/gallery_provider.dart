@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import 'package:swipe_gallery/data/models/gallery/gallery_exception.dart';
@@ -22,6 +21,10 @@ class GalleryNotifier extends _$GalleryNotifier {
   final Set<String> _skippedIdsCache = {};
   final Set<String> _trashIdsCache = {};
 
+  int _currentPage = 0;
+  static const int _pageSize = 30;
+  bool _isLoadingMore = false;
+
   @override
   FutureOr<GalleryState> build() async {
     final permissionStatus = await ref.watch(
@@ -32,7 +35,7 @@ class GalleryNotifier extends _$GalleryNotifier {
     }
 
     // 초기에는 전체 사진 로드
-    return _loadPhotos();
+    return _initializePhotos();
   }
 
   Future<void> selectAlbum(AssetPathEntity? album) async {
@@ -40,10 +43,86 @@ class GalleryNotifier extends _$GalleryNotifier {
     await refresh();
   }
 
-  Future<GalleryState> _loadPhotos() async {
+  Future<GalleryState> _initializePhotos() async {
+    _currentPage = 0;
+    _isLoadingMore = false;
+
+    // 초기 로딩 시도
+    await _loadPageRecursive(null);
+
+    // _loadPageRecursive가 state를 업데이트하므로 현재 state 반환
+    return state.value ?? const GalleryState();
+  }
+
+  Future<void> _loadMorePhotos() async {
+    if (_isLoadingMore) return;
+
+    final current = state.valueOrNull;
+    // active가 비어있어도 로드 시도해야 함 (필터링된 경우)
+
+    _isLoadingMore = true;
+    _currentPage++;
+
+    try {
+      await _loadPageRecursive(current);
+    } catch (e) {
+      _currentPage--;
+    } finally {
+      _isLoadingMore = false;
+    }
+  }
+
+  /// 페이지를 로드하고, 유효한(active) 사진이 추가될 때까지 재귀적으로 다음 페이지를 로드함
+  Future<void> _loadPageRecursive(GalleryState? currentState) async {
     final service = ref.read(galleryServiceProvider);
-    final result = await service.fetchPhotos(album: _selectedAlbum);
-    return _buildStateFromPhotos(result.photos, result.totalCount);
+    final result = await service.fetchPhotos(
+      album: _selectedAlbum,
+      page: _currentPage,
+      size: _pageSize,
+    );
+
+    if (result.photos.isEmpty) {
+      // 앨범 끝에 도달했음.
+      // 만약 currentState가 있다면(재귀 호출 중이었다면), 지금까지 누적된 상태로 업데이트
+      if (currentState != null) {
+        state = AsyncData(currentState);
+      }
+      return;
+    }
+
+    final isInitialLoad =
+        currentState == null && _currentPage == 0; // 정확한 초기화 조건
+
+    final newState = await _buildStateFromPhotos(
+      result.photos,
+      result.totalCount,
+      currentState: currentState,
+      isInitialLoad: isInitialLoad,
+    );
+
+    final previousActiveCount = currentState?.active.length ?? 0;
+    final newActiveCount = newState.active.length;
+
+    // 이번 페이지 로드 결과 active 사진이 추가되었는지 확인
+    final hasNewActivePhotos = newActiveCount > previousActiveCount;
+
+    // 만약 active가 전혀 늘어나지 않았고(모두 필터링됨), 아직 남은 사진이 있다면
+    if (!hasNewActivePhotos && newState.remainingCount > 0) {
+      // State 업데이트를 건너뛰고 바로 다음 페이지 로드 (깜빡임 방지)
+      _currentPage++;
+      // 재귀 호출 (await로 순차 실행)
+      await _loadPageRecursive(newState);
+    } else {
+      // 유효한 사진이 있거나, 더 이상 사진이 없는 경우에만 상태 업데이트
+      state = AsyncData(newState);
+    }
+  }
+
+  /// 넘겼던(Pass) 모든 사진 초기화 및 처음부터 다시 보기
+  Future<void> resetAllPassedPhotos() async {
+    _skippedIdsCache.clear();
+    await _persistence.saveSkippedIds(_skippedIdsCache);
+    await refresh();
   }
 
   void removePhoto(String id) {
@@ -65,9 +144,19 @@ class GalleryNotifier extends _$GalleryNotifier {
     _trashIdsCache.add(id);
     _persistTrashIds();
 
+    final newRemaining = current.remainingCount - 1;
+
     state = AsyncData(
-      current.copyWith(active: updatedActive, trash: updatedTrash),
+      current.copyWith(
+        active: updatedActive,
+        trash: updatedTrash,
+        remainingCount: newRemaining,
+      ),
     );
+
+    if (updatedActive.length < 5) {
+      _loadMorePhotos();
+    }
   }
 
   void passPhoto(PhotoModel photo) {
@@ -83,7 +172,15 @@ class GalleryNotifier extends _$GalleryNotifier {
     _skippedIdsCache.add(photo.id);
     _persistSkippedIds();
 
-    state = AsyncData(current.copyWith(active: updatedActive));
+    final newRemaining = current.remainingCount - 1;
+
+    state = AsyncData(
+      current.copyWith(active: updatedActive, remainingCount: newRemaining),
+    );
+
+    if (updatedActive.length < 5) {
+      _loadMorePhotos();
+    }
   }
 
   /// 패스했던 사진을 다시 맨 앞에 추가 (Undo 용도)
@@ -106,7 +203,12 @@ class GalleryNotifier extends _$GalleryNotifier {
     }
 
     final updatedActive = <PhotoModel>[photo, ...current.active];
-    state = AsyncData(current.copyWith(active: updatedActive));
+    // Undo 시 remainingCount 증가
+    final newRemaining = current.remainingCount + 1;
+
+    state = AsyncData(
+      current.copyWith(active: updatedActive, remainingCount: newRemaining),
+    );
   }
 
   void restorePhoto(String id) {
@@ -140,8 +242,15 @@ class GalleryNotifier extends _$GalleryNotifier {
     _trashIdsCache.removeAll(selectedIds);
     _persistTrashIds();
 
+    // 복구 시 remainingCount 증가 (복구된 개수만큼)
+    final newRemaining = current.remainingCount + restored.length;
+
     state = AsyncData(
-      current.copyWith(active: updatedActive, trash: updatedTrash),
+      current.copyWith(
+        active: updatedActive,
+        trash: updatedTrash,
+        remainingCount: newRemaining,
+      ),
     );
   }
 
@@ -190,14 +299,16 @@ class GalleryNotifier extends _$GalleryNotifier {
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      return _loadPhotos();
+      return _initializePhotos();
     });
   }
 
   Future<GalleryState> _buildStateFromPhotos(
-    List<PhotoModel> photos,
-    int totalCount,
-  ) async {
+    List<PhotoModel> newPhotos,
+    int totalCount, {
+    GalleryState? currentState,
+    bool isInitialLoad = false,
+  }) async {
     final storedTrashIds = await _persistence.loadTrashIds();
     final storedSkippedIds = await _persistence.loadSkippedIds();
 
@@ -207,21 +318,48 @@ class GalleryNotifier extends _$GalleryNotifier {
     _skippedIdsCache.clear();
     _skippedIdsCache.addAll(storedSkippedIds);
 
-    final active = <PhotoModel>[];
-    final trash = <PhotoModel>[];
+    final active =
+        isInitialLoad
+            ? <PhotoModel>[]
+            : List<PhotoModel>.from(currentState?.active ?? []);
+    final trash =
+        isInitialLoad
+            ? <PhotoModel>[]
+            : List<PhotoModel>.from(currentState?.trash ?? []);
 
-    for (final photo in photos) {
+    int filteredCount = 0;
+
+    for (final photo in newPhotos) {
       if (_trashIdsCache.contains(photo.id)) {
-        trash.add(photo);
-      } else if (!_skippedIdsCache.contains(photo.id)) {
-        active.add(photo);
+        // 이미 Trash에 있는지 확인 후 추가
+        if (!trash.any((t) => t.id == photo.id)) {
+          trash.add(photo);
+        }
+        filteredCount++;
+      } else if (_skippedIdsCache.contains(photo.id)) {
+        filteredCount++;
+      } else {
+        // 이미 Active에 있는지 확인 후 추가
+        if (!active.any((a) => a.id == photo.id)) {
+          active.add(photo);
+        }
       }
+    }
+
+    int remainingCount;
+    if (isInitialLoad) {
+      remainingCount = totalCount - filteredCount;
+    } else {
+      // 추가 로딩 시: 기존 remainingCount에서 이번에 로드된 것 중 처리된 개수를 뺌
+      remainingCount =
+          (currentState?.remainingCount ?? totalCount) - filteredCount;
     }
 
     return GalleryState(
       active: active,
       trash: trash,
       totalCount: totalCount,
+      remainingCount: remainingCount,
       selectedAlbumId: _selectedAlbum?.id,
     );
   }
