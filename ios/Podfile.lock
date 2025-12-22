@@ -1,6 +1,42 @@
 PODS:
+  - DartCvIOS (4.12.0.2):
+    - DartCvIOS/calib3d (= 4.12.0.2)
+    - DartCvIOS/contrib (= 4.12.0.2)
+    - DartCvIOS/core (= 4.12.0.2)
+    - DartCvIOS/features2d (= 4.12.0.2)
+    - DartCvIOS/imgproc (= 4.12.0.2)
+    - DartCvIOS/objdetect (= 4.12.0.2)
+    - DartCvIOS/photo (= 4.12.0.2)
+    - DartCvIOS/stitching (= 4.12.0.2)
+    - DartCvIOS/video (= 4.12.0.2)
+  - DartCvIOS/calib3d (4.12.0.2):
+    - DartCvIOS/core
+  - DartCvIOS/contrib (4.12.0.2):
+    - DartCvIOS/core
+  - DartCvIOS/core (4.12.0.2)
+  - DartCvIOS/dnn (4.12.0.2):
+    - DartCvIOS/core
+  - DartCvIOS/features2d (4.12.0.2):
+    - DartCvIOS/core
+  - DartCvIOS/imgproc (4.12.0.2):
+    - DartCvIOS/core
+  - DartCvIOS/objdetect (4.12.0.2):
+    - DartCvIOS/core
+  - DartCvIOS/photo (4.12.0.2):
+    - DartCvIOS/core
+  - DartCvIOS/stitching (4.12.0.2):
+    - DartCvIOS/core
+  - DartCvIOS/video (4.12.0.2):
+    - DartCvIOS/core
+  - DartCvIOS/videoio (4.12.0.2):
+    - DartCvIOS/core
   - Flutter (1.0.0)
   - flutter_native_splash (2.4.3):
+    - Flutter
+  - opencv_dart (0.0.1):
+    - DartCvIOS (= 4.12.0.2)
+    - DartCvIOS/dnn (= 4.12.0.2)
+    - DartCvIOS/videoio (= 4.12.0.2)
     - Flutter
   - photo_manager (3.8.0):
     - Flutter
@@ -15,15 +51,22 @@ PODS:
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
+  - opencv_dart (from `.symlinks/plugins/opencv_dart/ios`)
   - photo_manager (from `.symlinks/plugins/photo_manager/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/darwin`)
+
+SPEC REPOS:
+  trunk:
+    - DartCvIOS
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
   flutter_native_splash:
     :path: ".symlinks/plugins/flutter_native_splash/ios"
+  opencv_dart:
+    :path: ".symlinks/plugins/opencv_dart/ios"
   photo_manager:
     :path: ".symlinks/plugins/photo_manager/darwin"
   shared_preferences_foundation:
@@ -32,8 +75,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/video_player_avfoundation/darwin"
 
 SPEC CHECKSUMS:
+  DartCvIOS: 31615ff863f0fc709aee9b93dc3afa3500d35ba7
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
+  opencv_dart: 71fc6f2ae1f9feb2f143eeee32823f3dc492ab47
   photo_manager: 343d78032bf7ebe944d2ab9702204dc2eda07338
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   video_player_avfoundation: 2cef49524dd1f16c5300b9cd6efd9611ce03639b

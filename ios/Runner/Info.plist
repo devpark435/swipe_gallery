@@ -54,6 +54,8 @@
 		<string>갤러리 사진을 불러오기 위해 사진 접근 권한이 필요합니다.</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
 		<string>선택한 사진을 저장하거나 업데이트하기 위해 사진 접근 권한이 필요합니다.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>비슷한 사진 분석 기능을 위해 사용됩니다.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>
