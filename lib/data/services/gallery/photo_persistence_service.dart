@@ -53,6 +53,28 @@ class PhotoPersistenceService {
     await _saveIds(_skippedKey, ids);
   }
 
+  // --- Album Index Methods ---
+
+  static const _albumIndexPrefix = 'gallery_album_index_';
+
+  // 앨범 인덱스 로드
+  Future<int> loadAlbumIndex(String albumId) async {
+    final prefs = await _preferences;
+    return prefs?.getInt('${_albumIndexPrefix}$albumId') ?? 0;
+  }
+
+  // 앨범 인덱스 저장
+  Future<void> saveAlbumIndex(String albumId, int index) async {
+    final prefs = await _preferences;
+    await prefs?.setInt('${_albumIndexPrefix}$albumId', index);
+  }
+
+  // 앨범 인덱스 초기화
+  Future<void> resetAlbumIndex(String albumId) async {
+    final prefs = await _preferences;
+    await prefs?.remove('${_albumIndexPrefix}$albumId');
+  }
+
   // --- Helper Methods ---
 
   Future<Set<String>> _loadIds(String key) async {

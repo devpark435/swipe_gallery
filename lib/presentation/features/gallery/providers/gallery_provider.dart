@@ -47,6 +47,18 @@ class GalleryNotifier extends _$GalleryNotifier {
     _currentPage = 0;
     _isLoadingMore = false;
 
+    // 1. 현재 선택된 앨범 ID 확인 (없으면 'recent')
+    final albumId = _selectedAlbum?.id ?? 'recent';
+
+    // 2. 저장된 인덱스 가져오기
+    final lastIndex = await _persistence.loadAlbumIndex(albumId);
+
+    // 3. 시작 페이지 계산 (예: 1250번째 사진 -> 1250 ~/ 30 = 41페이지부터 시작)
+    // 0이 아닌 경우에만 적용하여 불필요한 연산 방지
+    if (lastIndex > 0) {
+      _currentPage = lastIndex ~/ _pageSize;
+    }
+
     // 초기 로딩 시도
     await _loadPageRecursive(null);
 
@@ -122,6 +134,11 @@ class GalleryNotifier extends _$GalleryNotifier {
   Future<void> resetAllPassedPhotos() async {
     _skippedIdsCache.clear();
     await _persistence.saveSkippedIds(_skippedIdsCache);
+
+    // 앨범 인덱스도 초기화
+    final albumId = _selectedAlbum?.id ?? 'recent';
+    await _persistence.resetAlbumIndex(albumId);
+
     await refresh();
   }
 
@@ -171,6 +188,15 @@ class GalleryNotifier extends _$GalleryNotifier {
 
     _skippedIdsCache.add(photo.id);
     _persistSkippedIds();
+
+    // 현재 앨범 진행상황(인덱스) 저장
+    // "현재 로드된 페이지"를 기준으로 저장하여 다음 실행 시 해당 페이지부터 로드하도록 함.
+    final albumId = _selectedAlbum?.id ?? 'recent';
+    if (_currentPage > 0) {
+      unawaited(
+        _persistence.saveAlbumIndex(albumId, _currentPage * _pageSize),
+      );
+    }
 
     final newRemaining = current.remainingCount - 1;
 
