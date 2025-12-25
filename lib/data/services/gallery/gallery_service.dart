@@ -10,44 +10,106 @@ part 'gallery_service.g.dart';
 class GalleryService {
   const GalleryService();
 
-  Future<List<PhotoModel>> fetchPhotos() async {
+  Future<List<AssetPathEntity>> fetchAlbums() async {
     final permission = await PhotoManager.requestPermissionExtend();
     if (!permission.isAuth) {
       throw const GalleryPermissionException();
     }
 
-    final paths = await PhotoManager.getAssetPathList(
-      type: RequestType.image,
+    // hasAll: true -> 'Recent'(전체) 앨범 포함
+    // filterOption: 빈 앨범 제외 등을 위한 설정 가능 (여기서는 기본값 사용하되, 추후 확장 가능)
+    final albums = await PhotoManager.getAssetPathList(
+      type: RequestType.common, // 이미지 + 비디오 모두 포함
       hasAll: true,
-      onlyAll: true,
+      filterOption: FilterOptionGroup(
+        containsPathModified: true, // 앨범 수정 시간 포함
+      ),
     );
 
-    if (paths.isEmpty) {
-      return const [];
+    // 1. 'isAll' (Recent) 앨범을 찾아서 맨 앞으로 보냄
+    // 2. assetCount가 0인 앨범은 제외 (빈 앨범 숨기기)
+    final filteredAlbums = <AssetPathEntity>[];
+
+    for (final album in albums) {
+      final count = await album.assetCountAsync;
+      if (count > 0) {
+        if (album.isAll) {
+          filteredAlbums.insert(0, album);
+        } else {
+          filteredAlbums.add(album);
+        }
+      }
     }
 
-    final assets = await paths.first.getAssetListPaged(page: 0, size: 100);
-    assets.sort((a, b) => a.createDateTime.compareTo(b.createDateTime));
+    return filteredAlbums;
+  }
+
+  Future<({List<PhotoModel> photos, int totalCount})> fetchPhotos({
+    AssetPathEntity? album,
+    int page = 0,
+    int size = 30,
+  }) async {
+    final permission = await PhotoManager.requestPermissionExtend();
+    if (!permission.isAuth) {
+      throw const GalleryPermissionException();
+    }
+
+    AssetPathEntity? targetAlbum = album;
+
+    if (targetAlbum == null) {
+      final paths = await PhotoManager.getAssetPathList(
+        type: RequestType.common, // 이미지 + 비디오 모두 포함
+        hasAll: true,
+        onlyAll: true,
+        filterOption: FilterOptionGroup(
+          containsPathModified: true,
+          orders: [
+            const OrderOption(type: OrderOptionType.createDate, asc: false),
+          ],
+        ),
+      );
+      if (paths.isEmpty) {
+        return (photos: <PhotoModel>[], totalCount: 0);
+      }
+      targetAlbum = paths.first;
+    }
+
+    final totalCount = await targetAlbum.assetCountAsync;
+
+    // 초기 로딩 속도 개선을 위해 30장으로 제한
+    final assets = await targetAlbum.getAssetListPaged(page: page, size: size);
+
     final photos = <PhotoModel>[];
 
     for (final asset in assets) {
-      final file = await asset.file;
-      if (file == null) {
+      // 이미지 또는 비디오 타입만 처리
+      if (asset.type != AssetType.image && asset.type != AssetType.video) {
         continue;
       }
 
-      photos.add(
-        PhotoModel(
-          id: asset.id,
-          imageUrl: file.path,
-          title: asset.title ?? '내 사진',
-          description: _descriptionFromAsset(asset),
-          isLocal: true,
-        ),
-      );
+      try {
+        final file = await asset.file;
+        if (file == null) {
+          continue;
+        }
+
+        photos.add(
+          PhotoModel(
+            id: asset.id,
+            imageUrl: file.path,
+            title: asset.title ?? '내 사진',
+            description: _descriptionFromAsset(asset),
+            isLocal: true,
+            isVideo: asset.type == AssetType.video, // 비디오 여부 추가
+          ),
+        );
+      } catch (e) {
+        // 파일 로드 실패 시 건너뜀
+        continue;
+      }
     }
 
-    return photos;
+    return (photos: photos, totalCount: totalCount);
   }
 
   Future<List<String>> deleteAssets(List<String> ids) async {

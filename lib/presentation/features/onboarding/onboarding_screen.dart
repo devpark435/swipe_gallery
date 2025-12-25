@@ -127,8 +127,8 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
                     if (value < 0.40) {
                       final progress = value / 0.40;
                       final curve = Curves.easeInOut.transform(progress);
-                      dx = curve * 150;
-                      rotate = curve * 0.15;
+                      dx = curve * -150;
+                      rotate = curve * -0.15;
                       opacity = 1.0 - (curve * 0.5);
                       if (curve > 0.1) {
                         overlayColor = context.colors.primary;
@@ -139,8 +139,8 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
                     } else if (value < 0.90) {
                       final progress = (value - 0.50) / 0.40;
                       final curve = Curves.easeInOut.transform(progress);
-                      dx = curve * -150;
-                      rotate = curve * -0.15;
+                      dx = curve * 150;
+                      rotate = curve * 0.15;
                       opacity = 1.0 - (curve * 0.5);
                       if (curve > 0.1) {
                         overlayColor = context.colors.error;
@@ -199,12 +199,12 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
 
                     if (value < 0.40) {
                       final progress = value / 0.40;
-                      dx = Curves.easeInOut.transform(progress) * 150;
+                      dx = Curves.easeInOut.transform(progress) * -150;
                     } else if (value < 0.50) {
                       scale = 0.0;
                     } else if (value < 0.90) {
                       final progress = (value - 0.50) / 0.40;
-                      dx = Curves.easeInOut.transform(progress) * -150;
+                      dx = Curves.easeInOut.transform(progress) * 150;
                     } else {
                       scale = 0.0;
                     }
@@ -252,7 +252,7 @@ class _SwipeGuidePageState extends State<_SwipeGuidePage>
           ),
           const SizedBox(height: 16),
           Text(
-            '오른쪽으로 넘겨서 사진을 유지하고\n왼쪽으로 넘겨서 쓰윽 삭제하세요.',
+            '왼쪽으로 넘겨서 사진을 유지하고\n오른쪽으로 넘겨서 쓰윽 삭제하세요.',
             textAlign: TextAlign.center,
             style: AppTextTheme.bodyLarge.copyWith(
               color: context.colors.textSecondary,

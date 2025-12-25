@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_manager/photo_manager.dart';
 import 'package:swipe_gallery/data/models/gallery/gallery_exception.dart';
 import 'package:swipe_gallery/data/models/gallery/photo_model.dart';
 import 'package:swipe_gallery/presentation/features/gallery/providers/gallery_provider.dart';
@@ -181,7 +183,12 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
                 }
 
                 return GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                  padding: const EdgeInsets.fromLTRB(
+                    16,
+                    16,
+                    16,
+                    120,
+                  ), // BottomNav Height + Safe Area + Selection Bar Height 고려하여 여백 추가
                   physics: const BouncingScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
@@ -351,6 +358,54 @@ class _TrashImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 비디오일 경우 썸네일 표시
+    if (photo.isVideo) {
+      return FutureBuilder<AssetEntity?>(
+        future: AssetEntity.fromId(photo.id),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data != null) {
+            return FutureBuilder<Uint8List?>(
+              future: snapshot.data!.thumbnailDataWithSize(
+                const ThumbnailSize.square(200), // 그리드이므로 작게 요청
+              ),
+              builder: (context, thumbSnapshot) {
+                if (thumbSnapshot.hasData && thumbSnapshot.data != null) {
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.memory(
+                        thumbSnapshot.data!,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) =>
+                                _thumbnailPlaceholder(context),
+                      ),
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return Container(color: context.colors.background);
+              },
+            );
+          }
+          return Container(color: context.colors.background);
+        },
+      );
+    }
+
     if (photo.isLocal) {
       final file = File(photo.imageUrl);
       return Image.file(

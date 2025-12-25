@@ -42,7 +42,7 @@ class AppTheme {
         foregroundColor: colors.textPrimary,
         surfaceTintColor: Colors.transparent,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: colors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         elevation: 6,
